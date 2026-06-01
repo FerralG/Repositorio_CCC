@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Vives Lara</title>
+  <link rel="stylesheet" href="main.css?v=2" />
+</head>
+<body class="login-body">
+
+  <div class="login-wrapper">
+    <div class="login-card">
+      <img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara" style="max-width:180px; display:block; margin:0 auto 18px;">
+
+      <h1 class="login-title">INICIAR SESIÓN</h1>
+      <p class="login-subtitle">Acceso al panel administrativo</p>
+
+      <form id="formLogin" class="login-form">
+        <div class="input-group">
+          <input type="text" id="usuario" class="login-input" placeholder="Usuario" required />
+        </div>
+
+        <div class="input-group">
+          <input type="password" id="password" class="login-input" placeholder="Contraseña" required />
+        </div>
+
+        <div class="login-options">
+          <a href="#" class="login-link" id="linkOlvidePassword">¿Has olvidado la contraseña?</a>
+          <p id="msgOlvidePassword" style="display:none; margin:6px 0 0; font-size:13px; color:#6b7280; text-align:center;">
+            Contacta al administrador para restablecer tu contraseña
+          </p>
+        </div>
+
+        <div class="brand-info">
+          <img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara" style="max-width:180px; display:block; margin:0 auto;">
+        </div>
+
+        <button type="submit" class="login-btn">Iniciar sesión</button>
+      </form>
+
+      <p id="msgSesionExpirada" style="display:none; margin-top:14px; color:#dc2626; font-size:13px; text-align:center;">
+        Tu sesión fue cerrada. Contacta al administrador.
+      </p>
+    </div>
+  </div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get("sesion") === "expirada") {
+    document.getElementById("msgSesionExpirada").style.display = "block";
+  }
+
+  document.getElementById("linkOlvidePassword").addEventListener("click", function (e) {
+    e.preventDefault();
+    const msg = document.getElementById("msgOlvidePassword");
+    msg.style.display = msg.style.display === "none" ? "block" : "none";
+  });
+
+  document.getElementById("formLogin").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const usuario = document.getElementById("usuario").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ usuario, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+        if (data.usuario.rol === "admin") {
+          window.location.href = "/admin-usuarios.html";
+        } else if (data.usuario.rol === "editor") {
+          window.location.href = "/admin-propiedades.html";
+        } else {
+          alert("Rol no autorizado");
+        }
+      } else {
+        alert(data.error || "No se pudo iniciar sesión");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error al conectar con el servidor");
+    }
+  });
+</script>
+</body>
+</html>

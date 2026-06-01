@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propiedades - Vives Lara</title>
+    <link rel="stylesheet" href="main.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .acciones-header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-header,
+        .btn-card,
+        .btn-danger,
+        .btn-secondary {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s ease;
+        }
+
+        .btn-header {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .btn-header:hover {
+            background: #0b5ed7;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-card {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-card:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #bb2d3b;
+        }
+
+        .btn-ver {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-ver:hover {
+            background: #047857;
+        }
+
+        .prop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(12px, 3vw, 20px);
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            background: white;
+            margin: clamp(12px, 3vw, 20px);
+            border-radius: 18px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+            color: #6b7280;
+        }
+
+        .estado-pill {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #3730a3;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        html.dark #barraFiltros {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="logo"><img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara"></div>
+            <ul>
+                <li class="active"><i class="fas fa-building"></i> <span data-i18n="nav.propiedades">Propiedades</span></li>
+                <li id="btnUsuariosMenu" style="display:none;"><i class="fas fa-users"></i> <span data-i18n="nav.usuarios">Usuarios</span></li>
+                <li id="btnBitacoraMenu" style="display:none;"><i class="fas fa-clipboard-list"></i> <span data-i18n="nav.bitacora">Bitácora</span></li>
+                <li onclick="window.location.href='/admin-configuracion.html'"><i class="fas fa-cog"></i> <span data-i18n="nav.configuracion">Configuración</span></li>
+                <li id="btnCerrarSesion"><i class="fas fa-sign-out-alt"></i> <span data-i18n="nav.cerrarSesion">Cerrar sesión</span></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <button id="btnHamburguesa" class="btn-hamburguesa" aria-label="Menú"><i class="fas fa-bars"></i></button>
+                <div class="topbar-nav">
+                    <span data-i18n="topbar.inventario">INVENTARIO</span>
+                    <span data-i18n="topbar.propiedades">PROPIEDADES</span>
+                </div>
+
+                <div class="topbar-search">
+                    <input type="text" id="buscarInput" placeholder="Buscar por nombre, zona o dirección...">
+                    <i class="fas fa-search" style="color: black;"></i>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-user-circle fa-2x"></i>
+                    <span id="infoUsuario"></span>
+                    <i class="fas fa-cog" title="Configuración" onclick="window.location.href='/admin-configuracion.html'" style="cursor:pointer; font-size:1.2rem;"></i>
+                </div>
+            </header>
+
+            <div class="prop-header">
+                <h2 data-i18n="inventario-propiedades">Inventario de propiedades</h2>
+
+                <div class="acciones-header">
+                    <button class="btn-header" id="btnNuevaPropiedad">
+                        <i class="fas fa-plus-circle"></i> <span data-i18n="btn.nuevaPropiedad">Nueva propiedad</span>
+                    </button>
+                    <button class="btn-secondary" id="btnRecargar">
+                        <i class="fas fa-rotate-right"></i> <span data-i18n="btn.recargar">Recargar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de filtros -->
+            <div id="barraFiltros" style="margin: 0 clamp(12px,3vw,20px) 16px; background: white; border-radius: 16px; padding: clamp(12px,2vw,16px) clamp(12px,2vw,20px); box-shadow: 0 4px 14px rgba(0,0,0,0.06); display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
+                <select id="filtroTipo" class="form-input" style="flex:1; min-width:140px;">
+                    <option value="" data-i18n="filtrar-tipo">Tipo de inmueble</option>
+                    <option value="casa">Casa</option>
+                    <option value="departamento">Departamento</option>
+                    <option value="terreno">Terreno</option>
+                    <option value="local">Local</option>
+                    <option value="oficina">Oficina</option>
+                    <option value="otro">Otro</option>
+                </select>
+                <select id="filtroOperacion" class="form-input" style="flex:1; min-width:140px;">
+                    <option value="" data-i18n="filtrar-operacion">Operación</option>
+                    <option value="venta" data-i18n="venta">Venta</option>
+                    <option value="renta" data-i18n="renta">Renta</option>
+                </select>
+                <select id="filtroEstado" class="form-input" style="flex:1; min-width:140px;">
+                    <option value="" data-i18n="filtrar-estado">Estado</option>
+                    <option value="borrador">Borrador</option>
+                    <option value="publicada">Publicada</option>
+                    <option value="pausada">Pausada</option>
+                    <option value="vendida">Vendida</option>
+                    <option value="rentada">Rentada</option>
+                </select>
+                <input type="number" id="filtroMin" class="form-input" placeholder="Precio mínimo" data-i18n-placeholder="precio-min" style="flex:1; min-width:130px;">
+                <input type="number" id="filtroMax" class="form-input" placeholder="Precio máximo" data-i18n-placeholder="precio-max" style="flex:1; min-width:130px;">
+                <button id="btnLimpiarFiltros" class="btn-secondary" style="white-space:nowrap;">
+                    <i class="fas fa-times"></i> <span data-i18n="limpiar-filtros">Limpiar filtros</span>
+                </button>
+            </div>
+
+            <div class="resumen-box">
+                <div class="mini-card">
+                    <span data-i18n="total-propiedades">Total propiedades</span>
+                    <strong id="totalPropiedades">0</strong>
+                </div>
+
+                <div class="mini-card">
+                    <span data-i18n="publicadas">Publicadas</span>
+                    <strong id="totalPublicadas">0</strong>
+                </div>
+
+                <div class="mini-card">
+                    <span data-i18n="borrador">Borrador</span>
+                    <strong id="totalBorrador">0</strong>
+                </div>
+            </div>
+
+            <section class="grid-propiedades" id="contenedorPropiedades"></section>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const token = localStorage.getItem("token");
+        const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+        let propiedades = [];
+
+        if (!token || !usuarioGuardado) {
+            window.location.href = "/admin-login.html";
+        }
+
+        window.iniciarVerificacionSesion();
+
+        if (usuarioGuardado.rol !== "admin" && usuarioGuardado.rol !== "editor") {
+            window.location.href = "/admin-login.html";
+        }
+
+        document.getElementById("infoUsuario").textContent =
+            `${usuarioGuardado.nombre_completo} (${usuarioGuardado.rol})`;
+
+        if (usuarioGuardado.rol === "admin") {
+            document.getElementById("btnUsuariosMenu").style.display = "flex";
+            document.getElementById("btnBitacoraMenu").style.display = "flex";
+        }
+
+        document.getElementById("btnUsuariosMenu").addEventListener("click", () => {
+            window.location.href = "/admin-usuarios.html";
+        });
+
+        document.getElementById("btnBitacoraMenu").addEventListener("click", () => {
+            window.location.href = "/admin-bitacora.html";
+        });
+
+        document.getElementById("btnCerrarSesion").addEventListener("click", () => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("usuario");
+            window.location.href = "/admin-login.html";
+        });
+
+        document.getElementById("btnNuevaPropiedad").addEventListener("click", () => {
+            window.location.href = "/admin-formulario.html";
+        });
+
+        document.getElementById("btnRecargar").addEventListener("click", cargarPropiedades);
+
+        document.getElementById("buscarInput").addEventListener("input", filtrarPropiedades);
+        document.getElementById("filtroTipo").addEventListener("change", filtrarPropiedades);
+        document.getElementById("filtroOperacion").addEventListener("change", filtrarPropiedades);
+        document.getElementById("filtroEstado").addEventListener("change", filtrarPropiedades);
+        document.getElementById("filtroMin").addEventListener("input", filtrarPropiedades);
+        document.getElementById("filtroMax").addEventListener("input", filtrarPropiedades);
+
+        document.getElementById("btnLimpiarFiltros").addEventListener("click", () => {
+            document.getElementById("buscarInput").value = "";
+            document.getElementById("filtroTipo").value = "";
+            document.getElementById("filtroOperacion").value = "";
+            document.getElementById("filtroEstado").value = "";
+            document.getElementById("filtroMin").value = "";
+            document.getElementById("filtroMax").value = "";
+            filtrarPropiedades();
+        });
+
+        function placeholderSvg(texto = "Sin imagen") {
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="800" height="500">
+                    <rect width="100%" height="100%" fill="#d1d5db"/>
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+                        fill="#374151" font-family="Arial" font-size="32" font-weight="bold">
+                        ${texto}
+                    </text>
+                </svg>
+            `;
+            return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+        }
+
+        async function cargarPropiedades() {
+            try {
+                const res = await fetch("/api/propiedades", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(data.error || "No se pudieron cargar las propiedades");
+                    return;
+                }
+
+                propiedades = Array.isArray(data) ? data : [];
+                actualizarResumen(propiedades);
+                renderPropiedades(propiedades);
+            } catch (error) {
+                console.error(error);
+                alert("Error al conectar con el servidor");
+            }
+        }
+
+        function actualizarResumen(lista) {
+            document.getElementById("totalPropiedades").textContent = lista.length;
+            document.getElementById("totalPublicadas").textContent =
+                lista.filter(p => p.estado_publicacion === "publicada").length;
+            document.getElementById("totalBorrador").textContent =
+                lista.filter(p => p.estado_publicacion === "borrador").length;
+        }
+
+        function filtrarPropiedades() {
+            const texto = (document.getElementById("buscarInput").value || "").trim().toLowerCase();
+            const tipo = document.getElementById("filtroTipo").value;
+            const operacion = document.getElementById("filtroOperacion").value;
+            const estado = document.getElementById("filtroEstado").value;
+            const minVal = document.getElementById("filtroMin").value;
+            const maxVal = document.getElementById("filtroMax").value;
+            const min = minVal !== "" ? Number(minVal) : null;
+            const max = maxVal !== "" ? Number(maxVal) : null;
+
+            const filtradas = propiedades.filter(p => {
+                if (texto) {
+                    const nombre = (p.propiedad || "").toLowerCase();
+                    const zona = (p.zona || "").toLowerCase();
+                    const direccion = (p.direccion || "").toLowerCase();
+                    const tipoInm = (p.tipo_inmueble || "").toLowerCase();
+                    if (!nombre.includes(texto) && !zona.includes(texto) && !direccion.includes(texto) && !tipoInm.includes(texto)) return false;
+                }
+                if (tipo && (p.tipo_inmueble || "").toLowerCase() !== tipo) return false;
+                if (operacion && (p.tipo_operacion || "").toLowerCase() !== operacion) return false;
+                if (estado && (p.estado_publicacion || "") !== estado) return false;
+                const precio = Number(p.precio || 0);
+                if (min !== null && precio < min) return false;
+                if (max !== null && precio > max) return false;
+                return true;
+            });
+
+            actualizarResumen(filtradas);
+            renderPropiedades(filtradas);
+        }
+
+        function renderPropiedades(lista) {
+            const contenedor = document.getElementById("contenedorPropiedades");
+            contenedor.innerHTML = "";
+
+            if (!lista.length) {
+                contenedor.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <h3 style="margin-bottom:10px;">${t("sin-propiedades")}</h3>
+                        <p>${t("agregar-propiedad")}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            lista.forEach(prop => {
+                const card = document.createElement("article");
+                card.className = "tarjeta-prop";
+                card.addEventListener("click", () => {
+                    window.location.href = `/admin-detalles.html?id=${prop.id}`;
+                });
+
+                const imagen = prop.imagen_principal ? prop.imagen_principal : placeholderSvg();
+                const fecha = new Date(prop.creado_en).toLocaleDateString();
+
+                card.innerHTML = `
+                    <img src="${imagen}" alt="${prop.propiedad || 'Propiedad'}">
+
+                    <div class="tarjeta-info">
+                        <h3>${prop.propiedad || "Sin nombre"}</h3>
+                        <p>${prop.direccion || "Sin dirección"}</p>
+
+                        <div class="tarjeta-stats">
+                            <span><i class="fas fa-bed"></i> ${prop.recamaras ?? 0} Recámaras</span>
+                            <span><i class="fas fa-ruler-combined"></i> ${prop.superficie_construccion_m2 ?? 0} m²</span>
+                        </div>
+
+                        <div class="tarjeta-stats" style="margin-top: 8px;">
+                            <span><i class="fas fa-bath"></i> ${prop.banos ?? 0} Baños</span>
+                            <span><i class="fas fa-car"></i> ${prop.estacionamiento ?? 0} Estac.</span>
+                        </div>
+
+                        <div class="tarjeta-stats" style="margin-top: 8px;">
+                            <span><i class="fas fa-tag"></i> ${prop.tipo_operacion || "-"}</span>
+                            <span style="font-weight:bold;">$${Number(prop.precio || 0).toLocaleString("es-MX")}</span>
+                        </div>
+
+                        <span class="estado-pill">${prop.estado_publicacion || "borrador"}</span>
+
+                        <div style="margin-top:10px; font-size:12px; color:#6b7280;">
+                            Alta: ${fecha}
+                        </div>
+
+                        <div class="acciones">
+                            <button class="btn-ver btn-ver-detalles btn-card" data-id="${prop.id}">
+                                <i class="fas fa-eye"></i> ${t("ver")}
+                            </button>
+                            <button class="btn-card btn-editar" data-id="${prop.id}">
+                                <i class="fas fa-pen"></i> ${t("editar")}
+                            </button>
+                            <button class="btn-danger btn-eliminar" data-id="${prop.id}" data-nombre="${prop.propiedad || ''}">
+                                <i class="fas fa-trash"></i> ${t("eliminar")}
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                contenedor.appendChild(card);
+            });
+
+            document.querySelectorAll(".btn-ver-detalles").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    window.location.href = `/admin-detalles.html?id=${btn.dataset.id}`;
+                });
+            });
+
+            document.querySelectorAll(".btn-editar").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    window.location.href = `/admin-formulario.html?id=${id}`;
+                });
+            });
+
+            document.querySelectorAll(".btn-eliminar").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    const nombre = btn.dataset.nombre;
+
+                    const confirmar = confirm(`Seguro que quieres eliminar esta propiedad?\n\n${nombre}`);
+
+                    if (!confirmar) return;
+
+                    try {
+                        const res = await fetch(`/api/propiedades/${id}`, {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": `Bearer ${token}`
+                            }
+                        });
+
+                        const data = await res.json();
+
+                        if (!res.ok) {
+                            alert(data.error || "No se pudo eliminar la propiedad");
+                            return;
+                        }
+
+                        alert("Propiedad eliminada correctamente");
+                        cargarPropiedades();
+                    } catch (error) {
+                        console.error(error);
+                        alert("Error al eliminar la propiedad");
+                    }
+                });
+            });
+        }
+
+        cargarPropiedades();
+    </script>
+
+  <div id="sidebar-overlay"></div>
+  <script>
+    const btnHamburguesa = document.getElementById('btnHamburguesa');
+    const sidebarEl = document.querySelector('.sidebar');
+    const overlayEl = document.getElementById('sidebar-overlay');
+    if (btnHamburguesa) {
+      btnHamburguesa.addEventListener('click', () => {
+        sidebarEl.classList.toggle('sidebar-open');
+        overlayEl.classList.toggle('active');
+      });
+    }
+    if (overlayEl) {
+      overlayEl.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    }
+    document.querySelectorAll('.sidebar ul li').forEach(li => {
+      li.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    });
+  </script>
+
+  <!-- DIAGNÓSTICO TEMPORAL — eliminar tras verificar -->
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      var sidebar = document.querySelector('.sidebar');
+      var mainContent = document.querySelector('.main-content');
+      var cssLink = document.querySelector('link[rel="stylesheet"]');
+      console.log('--- DIAGNÓSTICO SIDEBAR ---');
+      console.log('Ancho ventana:', window.innerWidth);
+      console.log('Sidebar transform:', window.getComputedStyle(sidebar).transform);
+      console.log('Sidebar position:', window.getComputedStyle(sidebar).position);
+      console.log('Sidebar width:', window.getComputedStyle(sidebar).width);
+      console.log('Main content width:', window.getComputedStyle(mainContent).width);
+      console.log('CSS href:', cssLink ? cssLink.href : 'NO ENCONTRADO');
+      console.log('Sidebar classList:', sidebar.className);
+      console.log('---------------------------');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuarios - Vives Lara</title>
+  <link rel="stylesheet" href="main.css?v=2">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .btn-editar-user {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 6px;
+      transition: background 0.2s;
+    }
+    .btn-editar-user:hover { background: #1d4ed8; }
+
+    .btn-reset-pwd {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 6px;
+      transition: background 0.2s;
+    }
+    .btn-reset-pwd:hover { background: #4f46e5; }
+
+    .msg-exito {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+    }
+    .msg-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+    }
+
+    .btn-cancelar {
+      border: none;
+      border-radius: 12px;
+      padding: 13px 18px;
+      background: #6b7280;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .btn-cancelar:hover { background: #4b5563; }
+
+    /* Validación de campos */
+    .campo-error { border: 2px solid #dc3545 !important; }
+    .msg-campo-error { color: #dc3545; font-size: 12px; margin-top: 4px; display: block; }
+
+    /* Modal reset password */
+    #modalResetPwd {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    #modalResetPwd.visible { display: flex; }
+    #modalResetPwdBox {
+      background: #fff; border-radius: 16px; padding: 28px 32px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+    #modalResetPwdBox h3 { margin: 0 0 20px; font-size: 16px; color: #111827; }
+    #modalResetPwdBox .form-input { margin-bottom: 10px; }
+    #modalResetPwdBox .modal-acciones { display: flex; gap: 10px; margin-top: 16px; }
+    #modalResetPwdBox .modal-acciones button { flex: 1; }
+    html.dark #modalResetPwdBox { background: #1e293b; }
+    html.dark #modalResetPwdBox h3 { color: #f1f5f9; }
+
+    /* Password checklist */
+    #passwordChecklist { display: none; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .pwd-rule {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .pwd-rule.ok {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    html.dark .pwd-rule        { background: #450a0a; color: #fca5a5; }
+    html.dark .pwd-rule.ok     { background: #064e3b; color: #6ee7b7; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="logo"><img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara"></div>
+      <ul>
+        <li class="active"><i class="fas fa-users"></i> <span data-i18n="nav.usuarios">Usuarios</span></li>
+        <li onclick="irPropiedades()"><i class="fas fa-building"></i> <span data-i18n="nav.propiedades">Propiedades</span></li>
+        <li onclick="window.location.href='/admin-bitacora.html'"><i class="fas fa-clipboard-list"></i> <span data-i18n="nav.bitacora">Bitácora</span></li>
+        <li onclick="window.location.href='/admin-configuracion.html'"><i class="fas fa-cog"></i> <span data-i18n="nav.configuracion">Configuración</span></li>
+        <li onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> <span data-i18n="nav.cerrarSesion">Cerrar sesión</span></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="btnHamburguesa" class="btn-hamburguesa" aria-label="Menú"><i class="fas fa-bars"></i></button>
+        <div class="topbar-nav">
+          <span data-i18n="topbar.administracion">ADMINISTRACIÓN</span>
+          <span data-i18n="topbar.usuarios">USUARIOS</span>
+        </div>
+
+        <div class="topbar-search">
+          <input type="text" id="busquedaUsuario" placeholder="Buscar usuario...">
+          <i class="fas fa-search" style="color: black;"></i>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-user-circle fa-2x"></i>
+          <span id="infoUsuario"></span>
+          <i class="fas fa-cog" title="Configuración" onclick="window.location.href='/admin-configuracion.html'" style="cursor:pointer; font-size:1.2rem;"></i>
+        </div>
+      </header>
+
+      <section style="padding: clamp(14px, 3vw, 25px);">
+        <div class="panel-card">
+          <h2 id="tituloPanelForm" style="margin-bottom: 20px;" data-i18n="alta-usuarios">Alta de usuarios</h2>
+
+          <div id="msgFeedback"></div>
+
+          <form id="formUsuario" class="formulario-grid-usuarios">
+            <input type="text" id="nombre_completo" class="form-input" placeholder="Nombre completo" data-i18n-placeholder="nombre-completo" required>
+            <input type="text" id="usuario" class="form-input" placeholder="Usuario" required>
+            <div>
+              <input type="email" id="correo" class="form-input" placeholder="Correo electrónico" data-i18n-placeholder="correo" required>
+            </div>
+            <div>
+              <input type="password" id="password" class="form-input" placeholder="Contraseña" data-i18n-placeholder="contrasena" required>
+              <div id="passwordChecklist" style="display:none; flex-wrap:wrap; gap:6px; margin-top:6px;">
+                <span id="chk-len"  class="pwd-rule">✕ Mínimo 8 caracteres</span>
+                <span id="chk-upper" class="pwd-rule">✕ Una mayúscula</span>
+                <span id="chk-num"  class="pwd-rule">✕ Un número</span>
+                <span id="chk-spec" class="pwd-rule">✕ Un carácter especial</span>
+              </div>
+            </div>
+
+            <select id="rol" class="form-input" required>
+              <option value="" data-i18n="selecciona-rol">Selecciona un rol</option>
+              <option value="admin">Admin</option>
+              <option value="editor">Editor</option>
+            </select>
+
+            <button type="submit" id="btnSubmitForm" class="btn-guardar-morado" data-i18n="crear-usuario">Crear usuario</button>
+            <button type="button" id="btnCancelar" class="btn-cancelar" style="display:none;">Cancelar</button>
+          </form>
+        </div>
+
+        <div class="panel-card" style="margin-top: 25px;">
+          <h2 style="margin-bottom: 20px;" data-i18n="usuarios-registrados">Usuarios registrados</h2>
+
+          <div class="tabla-wrapper">
+            <table class="tabla-usuarios">
+              <thead>
+                <tr>
+                  <th data-i18n="col-nombre">Nombre</th>
+                  <th data-i18n="col-usuario">Usuario</th>
+                  <th data-i18n="col-correo">Correo</th>
+                  <th data-i18n="col-rol">Rol</th>
+                  <th data-i18n="col-activo">Activo</th>
+                  <th data-i18n="col-fecha">Fecha</th>
+                  <th data-i18n="col-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaUsuarios"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal reset password -->
+  <div id="modalResetPwd" role="dialog" aria-modal="true">
+    <div id="modalResetPwdBox">
+      <h3 id="modalResetPwdTitulo">Resetear contraseña</h3>
+      <div>
+        <input type="password" id="resetNuevaPwd" class="form-input" placeholder="Nueva contraseña">
+        <div id="resetPwdChecklist" style="display:none; flex-wrap:wrap; gap:6px; margin-top:6px; margin-bottom:10px;">
+          <span id="rchk-len"  class="pwd-rule">✕ Mínimo 8 caracteres</span>
+          <span id="rchk-upper" class="pwd-rule">✕ Una mayúscula</span>
+          <span id="rchk-num"  class="pwd-rule">✕ Un número</span>
+          <span id="rchk-spec" class="pwd-rule">✕ Un carácter especial</span>
+        </div>
+      </div>
+      <div>
+        <input type="password" id="resetConfirmPwd" class="form-input" placeholder="Confirmar contraseña">
+        <span id="resetConfirmError" class="msg-campo-error" style="display:none;">Las contraseñas no coinciden</span>
+      </div>
+      <div class="modal-acciones">
+        <button id="btnModalGuardar" class="btn-guardar-morado">Guardar</button>
+        <button id="btnModalCancelar" class="btn-cancelar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!token || !usuarioGuardado) {
+      window.location.href = "/admin-login.html";
+    }
+
+    window.iniciarVerificacionSesion();
+
+    if (usuarioGuardado.rol !== "admin") {
+      window.location.href = "/admin-propiedades.html";
+    }
+
+    document.getElementById("infoUsuario").textContent =
+      `${usuarioGuardado.nombre_completo} (${usuarioGuardado.rol})`;
+
+    // --- Validación visual de campos ---
+    const CORREO_REGEX = /^[^\s@]+@[^\s@]+\.com$/;
+
+    function marcarError(id, mensaje) {
+      const el = document.getElementById(id);
+      el.classList.add("campo-error");
+      if (!el.parentElement.querySelector(`.error-${id}`)) {
+        const span = document.createElement("span");
+        span.className = `msg-campo-error error-${id}`;
+        span.textContent = mensaje;
+        el.insertAdjacentElement("afterend", span);
+      }
+    }
+
+    function limpiarError(id) {
+      const el = document.getElementById(id);
+      el.classList.remove("campo-error");
+      const errSpan = el.parentElement.querySelector(`.error-${id}`);
+      if (errSpan) errSpan.remove();
+    }
+
+    document.getElementById("correo").addEventListener("input", function () {
+      limpiarError("correo");
+    });
+
+    // --- Validación de contraseña ---
+    const pwdRules = [
+      { id: "chk-len",   test: v => v.length >= 8,                  label: "Mínimo 8 caracteres" },
+      { id: "chk-upper", test: v => /[A-Z]/.test(v),                label: "Una mayúscula" },
+      { id: "chk-num",   test: v => /[0-9]/.test(v),                label: "Un número" },
+      { id: "chk-spec",  test: v => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(v), label: "Un carácter especial" }
+    ];
+
+    function actualizarChecklist(valor) {
+      const checklist = document.getElementById("passwordChecklist");
+      if (!valor) {
+        checklist.style.display = "none";
+        return;
+      }
+      checklist.style.display = "flex";
+      pwdRules.forEach(rule => {
+        const span = document.getElementById(rule.id);
+        const ok = rule.test(valor);
+        span.textContent = (ok ? "✓ " : "✕ ") + rule.label;
+        span.classList.toggle("ok", ok);
+      });
+    }
+
+    function passwordValida(valor) {
+      return pwdRules.every(rule => rule.test(valor));
+    }
+
+    document.getElementById("password").addEventListener("input", function () {
+      actualizarChecklist(this.value);
+    });
+
+    // --- Estado del formulario ---
+    let modoEdicion = false;
+    let idEditando = null;
+
+    function mostrarMensaje(tipo, texto) {
+      const div = document.getElementById("msgFeedback");
+      div.innerHTML = `<div class="msg-${tipo}">${texto}</div>`;
+      setTimeout(() => { div.innerHTML = ""; }, 4000);
+    }
+
+    function entrarModoEdicion(user) {
+      modoEdicion = true;
+      idEditando = user.id;
+
+      document.getElementById("tituloPanelForm").textContent = "Editar usuario";
+      document.getElementById("btnSubmitForm").textContent = "Guardar cambios";
+      document.getElementById("btnCancelar").style.display = "";
+      document.getElementById("password").removeAttribute("required");
+      document.getElementById("password").placeholder = "Nueva contraseña (dejar vacío para no cambiar)";
+
+      document.getElementById("nombre_completo").value = user.nombre_completo;
+      document.getElementById("usuario").value = user.usuario;
+      document.getElementById("correo").value = user.correo;
+      document.getElementById("rol").value = user.rol;
+      document.getElementById("password").value = "";
+
+      document.getElementById("tituloPanelForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function salirModoEdicion() {
+      modoEdicion = false;
+      idEditando = null;
+
+      document.getElementById("tituloPanelForm").textContent = t("alta-usuarios");
+      document.getElementById("btnSubmitForm").textContent = t("crear-usuario");
+      document.getElementById("btnCancelar").style.display = "none";
+      document.getElementById("password").setAttribute("required", "");
+      document.getElementById("password").placeholder = t("contrasena");
+
+      document.getElementById("formUsuario").reset();
+      document.getElementById("msgFeedback").innerHTML = "";
+      actualizarChecklist("");
+    }
+
+    document.getElementById("btnCancelar").addEventListener("click", salirModoEdicion);
+
+    // --- Cargar tabla ---
+    async function cargarUsuarios() {
+      // Fetch admins-count de forma independiente con fallback
+      let adminsCount = 99;
+      try {
+        const resAdmins = await fetch("/api/usuarios/admins-count", { headers: { "Authorization": `Bearer ${token}` } });
+        const adminsData = await resAdmins.json();
+        console.log("[admins-count] status:", resAdmins.status, "body:", adminsData);
+        if (resAdmins.ok && typeof adminsData.count === "number") {
+          adminsCount = adminsData.count;
+        }
+      } catch (errAdmins) {
+        console.warn("[admins-count] falló, usando fallback adminsCount=99:", errAdmins);
+      }
+
+      // Fetch lista de usuarios
+      let data;
+      try {
+        const resUsuarios = await fetch("/api/usuarios", { headers: { "Authorization": `Bearer ${token}` } });
+        const body = await resUsuarios.json();
+        console.log("[usuarios] status:", resUsuarios.status, "body:", body);
+        if (!resUsuarios.ok) {
+          mostrarMensaje("error", body.error || "Error al cargar usuarios");
+          return;
+        }
+        data = body;
+      } catch (errUsuarios) {
+        console.error("[usuarios] falló:", errUsuarios);
+        mostrarMensaje("error", "Error al obtener usuarios");
+        return;
+      }
+
+      const tabla = document.getElementById("tablaUsuarios");
+      tabla.innerHTML = "";
+
+      data.forEach(user => {
+        const tr = document.createElement("tr");
+        const esUnicoAdmin = user.rol === "admin" && adminsCount === 1;
+        const btnEliminar = esUnicoAdmin
+          ? ``
+          : `<button class="btn-eliminar" data-eliminar-id="${user.id}">
+              ${t("eliminar")}
+             </button>`;
+
+        tr.innerHTML = `
+          <td>${user.nombre_completo}</td>
+          <td>${user.usuario}</td>
+          <td>${user.correo}</td>
+          <td>${user.rol}</td>
+          <td>${user.activo ? "Sí" : "No"}</td>
+          <td>${new Date(user.creado_en).toLocaleString()}</td>
+          <td>
+            <button class="btn-editar-user" data-id="${user.id}">
+              <i class="fas fa-pen"></i> ${t("editar")}
+            </button>
+            <button class="btn-reset-pwd" data-reset-id="${user.id}">
+              <i class="fas fa-key"></i> Resetear
+            </button>
+            ${btnEliminar}
+          </td>
+        `;
+        // Guardar datos del usuario en el botón para evitar inyección
+        const btnEditar = tr.querySelector(".btn-editar-user");
+        btnEditar._userData = user;
+        btnEditar.addEventListener("click", () => entrarModoEdicion(btnEditar._userData));
+
+        if (!esUnicoAdmin) {
+          const btnEliminarEl = tr.querySelector("[data-eliminar-id]");
+          btnEliminarEl._eliminarData = { id: user.id, nombre: user.nombre_completo };
+          btnEliminarEl.addEventListener("click", () => {
+            const { id, nombre } = btnEliminarEl._eliminarData;
+            eliminarUsuario(id, nombre);
+          });
+        }
+
+        const btnReset = tr.querySelector("[data-reset-id]");
+        btnReset._resetData = { id: user.id, nombre: user.nombre_completo };
+        btnReset.addEventListener("click", () => abrirModalReset(btnReset._resetData));
+
+        tabla.appendChild(tr);
+      });
+    }
+
+    async function eliminarUsuario(id, nombre) {
+      const confirmar = confirm(`Seguro que quieres eliminar este usuario?\n\n${nombre}`);
+      if (!confirmar) return;
+
+      try {
+        const res = await fetch(`/api/usuarios/${id}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          if (modoEdicion && idEditando === id) salirModoEdicion();
+          if (id === usuarioGuardado.id) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("usuario");
+            window.location.href = "/admin-login.html";
+            return;
+          }
+          mostrarMensaje("exito", "Usuario eliminado correctamente");
+          cargarUsuarios();
+        } else {
+          mostrarMensaje("error", data.error || "No se pudo eliminar el usuario");
+        }
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje("error", "Error al eliminar usuario");
+      }
+    }
+
+    // --- Submit (crear o editar) ---
+    document.getElementById("formUsuario").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const nombre_completo = document.getElementById("nombre_completo").value.trim();
+      const usuario = document.getElementById("usuario").value.trim();
+      const correo = document.getElementById("correo").value.trim();
+      const password = document.getElementById("password").value;
+      const rol = document.getElementById("rol").value;
+
+      // Validación de correo
+      if (!CORREO_REGEX.test(correo)) {
+        marcarError("correo", "El correo debe tener formato usuario@dominio.com");
+        document.getElementById("correo").focus();
+        return;
+      } else {
+        limpiarError("correo");
+      }
+
+      // Validación de contraseña
+      const pwdInput = document.getElementById("password");
+      if (!modoEdicion) {
+        // Alta: password obligatorio, siempre validar
+        if (!passwordValida(password)) {
+          actualizarChecklist(password);
+          pwdInput.focus();
+          return;
+        }
+      } else if (password !== "") {
+        // Edición con password escrito: validar
+        if (!passwordValida(password)) {
+          actualizarChecklist(password);
+          pwdInput.focus();
+          return;
+        }
+      }
+
+      try {
+        if (modoEdicion) {
+          const body = { nombre_completo, usuario, correo, rol };
+          if (password.trim() !== "") body.password = password;
+
+          const res = await fetch(`/api/usuarios/${idEditando}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(body)
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            salirModoEdicion();
+            mostrarMensaje("exito", "Usuario actualizado correctamente");
+            cargarUsuarios();
+          } else {
+            mostrarMensaje("error", data.error || "No se pudo actualizar el usuario");
+          }
+        } else {
+          const res = await fetch("/api/usuarios", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ nombre_completo, usuario, correo, password, rol })
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            mostrarMensaje("exito", "Usuario creado correctamente");
+            document.getElementById("formUsuario").reset();
+            actualizarChecklist("");
+            cargarUsuarios();
+          } else {
+            mostrarMensaje("error", data.error || "No se pudo crear el usuario");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje("error", modoEdicion ? "Error al actualizar usuario" : "Error al crear usuario");
+      }
+    });
+
+    function irPropiedades() {
+      window.location.href = "/admin-propiedades.html";
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      window.location.href = "/admin-login.html";
+    }
+
+    // --- Modal reset password ---
+    let resetUserId = null;
+
+    const modalResetPwd     = document.getElementById("modalResetPwd");
+    const resetNuevaPwd     = document.getElementById("resetNuevaPwd");
+    const resetConfirmPwd   = document.getElementById("resetConfirmPwd");
+    const resetConfirmError = document.getElementById("resetConfirmError");
+
+    const resetRules = [
+      { id: "rchk-len",   test: v => v.length >= 8 },
+      { id: "rchk-upper", test: v => /[A-Z]/.test(v) },
+      { id: "rchk-num",   test: v => /[0-9]/.test(v) },
+      { id: "rchk-spec",  test: v => /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?`~]/.test(v) }
+    ];
+    const resetRuleLabels = ["Mínimo 8 caracteres", "Una mayúscula", "Un número", "Un carácter especial"];
+
+    function actualizarResetChecklist(valor) {
+      const checklist = document.getElementById("resetPwdChecklist");
+      if (!valor) { checklist.style.display = "none"; return; }
+      checklist.style.display = "flex";
+      resetRules.forEach((rule, i) => {
+        const span = document.getElementById(rule.id);
+        const ok = rule.test(valor);
+        span.textContent = (ok ? "✓ " : "✕ ") + resetRuleLabels[i];
+        span.classList.toggle("ok", ok);
+      });
+    }
+
+    resetNuevaPwd.addEventListener("input", function () {
+      actualizarResetChecklist(this.value);
+      resetConfirmError.style.display = "none";
+      resetConfirmPwd.classList.remove("campo-error");
+    });
+
+    resetConfirmPwd.addEventListener("input", function () {
+      resetConfirmError.style.display = "none";
+      resetConfirmPwd.classList.remove("campo-error");
+    });
+
+    function abrirModalReset({ id, nombre }) {
+      resetUserId = id;
+      document.getElementById("modalResetPwdTitulo").textContent = `Resetear contraseña — ${nombre}`;
+      resetNuevaPwd.value = "";
+      resetConfirmPwd.value = "";
+      actualizarResetChecklist("");
+      resetConfirmError.style.display = "none";
+      resetNuevaPwd.classList.remove("campo-error");
+      resetConfirmPwd.classList.remove("campo-error");
+      modalResetPwd.classList.add("visible");
+      resetNuevaPwd.focus();
+    }
+
+    function cerrarModalReset() {
+      modalResetPwd.classList.remove("visible");
+      resetUserId = null;
+    }
+
+    document.getElementById("btnModalCancelar").addEventListener("click", cerrarModalReset);
+    modalResetPwd.addEventListener("click", function (e) {
+      if (e.target === modalResetPwd) cerrarModalReset();
+    });
+
+    document.getElementById("btnModalGuardar").addEventListener("click", async function () {
+      const nueva    = resetNuevaPwd.value;
+      const confirma = resetConfirmPwd.value;
+
+      const todasOk = resetRules.every(r => r.test(nueva));
+      if (!todasOk) {
+        actualizarResetChecklist(nueva);
+        resetNuevaPwd.classList.add("campo-error");
+        resetNuevaPwd.focus();
+        return;
+      }
+      resetNuevaPwd.classList.remove("campo-error");
+
+      if (nueva !== confirma) {
+        resetConfirmError.style.display = "block";
+        resetConfirmPwd.classList.add("campo-error");
+        resetConfirmPwd.focus();
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/usuarios/${resetUserId}/reset-password`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify({ nueva_password: nueva })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          cerrarModalReset();
+          mostrarMensaje("exito", "Contraseña restablecida correctamente");
+        } else {
+          mostrarMensaje("error", data.error || "No se pudo restablecer la contraseña");
+        }
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje("error", "Error al restablecer contraseña");
+      }
+    });
+
+    cargarUsuarios();
+  </script>
+
+  <div id="sidebar-overlay"></div>
+  <script>
+    const btnHamburguesa = document.getElementById('btnHamburguesa');
+    const sidebarEl = document.querySelector('.sidebar');
+    const overlayEl = document.getElementById('sidebar-overlay');
+    if (btnHamburguesa) {
+      btnHamburguesa.addEventListener('click', () => {
+        sidebarEl.classList.toggle('sidebar-open');
+        overlayEl.classList.toggle('active');
+      });
+    }
+    if (overlayEl) {
+      overlayEl.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    }
+    document.querySelectorAll('.sidebar ul li').forEach(li => {
+      li.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    });
+  </script>
+</body>
+</html>

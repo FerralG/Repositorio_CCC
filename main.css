@@ -1,0 +1,198 @@
+/* =========================================
+   ESTILOS GENERALES Y VARIABLES
+========================================= */
+:root {
+  --color-primario: #007BFF; /* Azul de las barras y botones */
+  --color-secundario: #5A52D5; /* Morado del formulario */
+  --color-fondo: #F4F6F8; /* Gris claro de fondo */
+  --color-texto: #333333;
+  --color-blanco: #FFFFFF;
+  --radio-borde: 10px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+}
+
+/* =========================================
+   PANTALLA DE LOGIN
+========================================= */
+.login-body {
+  background-color: var(--color-primario);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-card {
+  background-color: var(--color-blanco);
+  padding: 40px;
+  border-radius: var(--radio-borde);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.login-card h2 { color: #1a4a7b; margin-bottom: 20px; }
+.login-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: none;
+  background-color: #E0E0E0;
+  border-radius: 20px;
+  text-align: center;
+}
+.login-btn {
+  background-color: #3b9fff;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+  margin-top: 15px;
+}
+.login-link { display: block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 20px; }
+
+/* =========================================
+   ESTRUCTURA DASHBOARD (Layout)
+========================================= */
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar (Menú Lateral) */
+.sidebar {
+  width: 250px;
+  background-color: var(--color-primario);
+  color: var(--color-blanco);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar .logo { font-size: 24px; font-weight: bold; margin-bottom: 40px; text-align: center; }
+.sidebar ul { list-style: none; }
+.sidebar li { margin-bottom: 15px; cursor: pointer; }
+.sidebar li:hover { opacity: 0.8; }
+
+/* Contenido Principal */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #E9ECEF;
+}
+
+/* Topbar (Barra Superior) */
+.topbar {
+  background-color: var(--color-primario);
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.topbar-nav span { margin-right: 20px; cursor: pointer; }
+.topbar-search {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+}
+.topbar-search input { border: none; outline: none; background: transparent; }
+
+/* =========================================
+   TARJETAS DE INVENTARIO
+========================================= */
+.grid-propiedades {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+.tarjeta-prop {
+  background: var(--color-blanco);
+  border-radius: var(--radio-borde);
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.tarjeta-prop img { width: 100%; height: 200px; object-fit: cover; }
+.tarjeta-info { padding: 15px; }
+.tarjeta-info h3 { font-size: 18px; margin-bottom: 5px; }
+.tarjeta-info p { font-size: 14px; color: #666; margin-bottom: 10px; }
+.tarjeta-stats { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
+
+/* =========================================
+   VISTA DE DETALLES Y BOTONES
+========================================= */
+.detalles-container {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+  height: 100%;
+}
+.imagen-principal { flex: 1; background: #ccc; border-radius: var(--radio-borde); display: flex; align-items: center; justify-content: center; overflow: hidden;}
+.imagen-principal img { width: 100%; height: 100%; object-fit: cover; }
+.barra-inferior-datos {
+  background: white;
+  padding: 15px;
+  margin: 20px;
+  border-radius: var(--radio-borde);
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+.panel-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 200px;
+}
+.btn-accion {
+  background: #4ab3ff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+/* =========================================
+   FORMULARIO DE EDICIÓN
+========================================= */
+.formulario-grid {
+  background: var(--color-secundario);
+  padding: 20px;
+  border-radius: var(--radio-borde);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+  margin: 20px;
+}
+.form-input {
+  background: #E0E0E0;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  width: 100%;
+}
+.form-area { grid-row: span 4; }
+.btn-guardar-morado { background: #4B0082; color: white; padding: 10px; border-radius: 5px; border: none; width: 100%; cursor: pointer;}

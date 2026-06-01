@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración - Vives Lara</title>
+  <link rel="stylesheet" href="main.css?v=2">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .config-section {
+      margin-bottom: 28px;
+    }
+
+    .config-section h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    html.dark .config-section h3 {
+      color: #e2e8f0;
+      border-bottom-color: #334155;
+    }
+
+    .config-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    html.dark .config-row {
+      border-bottom-color: #1e293b;
+    }
+
+    .config-row:last-child {
+      border-bottom: none;
+    }
+
+    .config-label {
+      font-size: 15px;
+      color: #1f2937;
+    }
+
+    html.dark .config-label {
+      color: #e2e8f0;
+    }
+
+    .config-label small {
+      display: block;
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 3px;
+    }
+
+    html.dark .config-label small {
+      color: #94a3b8;
+    }
+
+    .select-idioma {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      background: #fff;
+      color: #1f2937;
+      cursor: pointer;
+      outline: none;
+      min-width: 160px;
+    }
+
+    html.dark .select-idioma {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+
+    .msg-exito {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+    }
+
+    html.dark .msg-exito {
+      background: #052e16;
+      color: #6ee7b7;
+      border-color: #065f46;
+    }
+
+    .msg-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+    }
+
+    html.dark .msg-error {
+      background: #450a0a;
+      color: #fca5a5;
+      border-color: #991b1b;
+    }
+
+    .pwd-rule {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .pwd-rule.ok {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    html.dark .pwd-rule     { background: #450a0a; color: #fca5a5; }
+    html.dark .pwd-rule.ok  { background: #064e3b; color: #6ee7b7; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="logo"><img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara"></div>
+      <ul>
+        <li onclick="window.location.href='/admin-propiedades.html'"><i class="fas fa-building"></i> <span data-i18n="nav.propiedades">Propiedades</span></li>
+        <li id="btnUsuariosMenu" style="display:none;" onclick="window.location.href='/admin-usuarios.html'"><i class="fas fa-users"></i> <span data-i18n="nav.usuarios">Usuarios</span></li>
+        <li id="btnBitacoraMenu" style="display:none;" onclick="window.location.href='/admin-bitacora.html'"><i class="fas fa-clipboard-list"></i> <span data-i18n="nav.bitacora">Bitácora</span></li>
+        <li class="active"><i class="fas fa-cog"></i> <span data-i18n="nav.configuracion">Configuración</span></li>
+        <li onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> <span data-i18n="nav.cerrarSesion">Cerrar sesión</span></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="btnHamburguesa" class="btn-hamburguesa" aria-label="Menú"><i class="fas fa-bars"></i></button>
+        <div class="topbar-nav">
+          <span>ADMINISTRACIÓN</span>
+          <span data-i18n="nav.configuracion">CONFIGURACIÓN</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-user-circle fa-2x"></i>
+          <span id="infoUsuario"></span>
+          <i class="fas fa-cog" title="Configuración" style="cursor:pointer; font-size:1.2rem;" onclick="window.location.href='/admin-configuracion.html'"></i>
+        </div>
+      </header>
+
+      <section style="padding: clamp(14px, 3vw, 25px); max-width:620px;">
+        <div id="msgFeedback"></div>
+
+        <div class="panel-card config-section">
+          <h3><i class="fas fa-paint-brush" style="margin-right:8px;"></i><span data-i18n="apariencia">Apariencia</span></h3>
+
+          <div class="config-row">
+            <div class="config-label">
+              <span data-i18n="modo-oscuro">Modo oscuro</span>
+              <small>Cambia la apariencia visual del sistema</small>
+            </div>
+            <label class="toggle-wrap" id="toggleWrap">
+              <span class="toggle-switch">
+                <input type="checkbox" id="toggleOscuro">
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="panel-card config-section">
+          <h3><i class="fas fa-language" style="margin-right:8px;"></i><span data-i18n="idioma-titulo">Idioma</span></h3>
+
+          <div class="config-row">
+            <div class="config-label">
+              Idioma del sistema
+              <small>Cambia el idioma de la interfaz</small>
+            </div>
+            <select id="selectIdioma" class="select-idioma">
+              <option value="es">🇪🇸 Español</option>
+              <option value="en">🇬🇧 English</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-card config-section">
+          <h3><i class="fas fa-lock" style="margin-right:8px;"></i>Seguridad</h3>
+
+          <div id="msgPassword"></div>
+
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="campo-grupo">
+              <label for="pwdActual">Contraseña actual</label>
+              <input type="password" id="pwdActual" class="form-input" placeholder="Contraseña actual">
+            </div>
+            <div class="campo-grupo">
+              <label for="pwdNueva">Nueva contraseña</label>
+              <input type="password" id="pwdNueva" class="form-input" placeholder="Nueva contraseña">
+              <div id="pwdChecklist" style="display:none; margin-top:8px;">
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                  <span id="chk-len" class="pwd-rule">✕ Mínimo 8 caracteres</span>
+                  <span id="chk-upper" class="pwd-rule">✕ Una mayúscula</span>
+                  <span id="chk-num" class="pwd-rule">✕ Un número</span>
+                  <span id="chk-spec" class="pwd-rule">✕ Un carácter especial</span>
+                </div>
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="pwdConfirmar">Confirmar nueva contraseña</label>
+              <input type="password" id="pwdConfirmar" class="form-input" placeholder="Confirmar nueva contraseña">
+            </div>
+            <button type="button" id="btnCambiarPwd" class="btn-guardar-morado" style="padding:13px;">
+              <i class="fas fa-key"></i> Cambiar contraseña
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-guardar-morado" id="btnGuardar" style="width:100%; padding:14px;">
+          <i class="fas fa-save"></i> <span data-i18n="guardar-config">Guardar cambios</span>
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!token || !usuarioGuardado) {
+      window.location.href = "/admin-login.html";
+    }
+
+    window.iniciarVerificacionSesion();
+
+    document.getElementById("infoUsuario").textContent =
+      `${usuarioGuardado.nombre_completo} (${usuarioGuardado.rol})`;
+
+    if (usuarioGuardado.rol === "admin") {
+      document.getElementById("btnUsuariosMenu").style.display = "flex";
+      document.getElementById("btnBitacoraMenu").style.display = "flex";
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      window.location.href = "/admin-login.html";
+    }
+
+    // Inicializar controles con valores actuales
+    function inicializarControles() {
+      const oscuro = localStorage.getItem("modo_oscuro") === "true";
+      const idioma = localStorage.getItem("idioma") || "es";
+      document.getElementById("toggleOscuro").checked = oscuro;
+      document.getElementById("selectIdioma").value = idioma;
+    }
+
+    inicializarControles();
+
+    // Cambio inmediato del toggle sin guardar
+    document.getElementById("toggleOscuro").addEventListener("change", (e) => {
+      if (e.target.checked) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    });
+
+    // Checklist contraseña
+    const pwdRules = [
+      { id: "chk-len",   test: v => v.length >= 8 },
+      { id: "chk-upper", test: v => /[A-Z]/.test(v) },
+      { id: "chk-num",   test: v => /[0-9]/.test(v) },
+      { id: "chk-spec",  test: v => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v) }
+    ];
+
+    document.getElementById("pwdNueva").addEventListener("input", function() {
+      const val = this.value;
+      const checklist = document.getElementById("pwdChecklist");
+      checklist.style.display = val ? "flex" : "none";
+      pwdRules.forEach(rule => {
+        const span = document.getElementById(rule.id);
+        const ok = rule.test(val);
+        span.classList.toggle("ok", ok);
+        span.textContent = (ok ? "✓ " : "✕ ") + span.textContent.slice(2);
+      });
+    });
+
+    document.getElementById("btnCambiarPwd").addEventListener("click", async () => {
+      const actual = document.getElementById("pwdActual").value;
+      const nueva = document.getElementById("pwdNueva").value;
+      const confirmar = document.getElementById("pwdConfirmar").value;
+      const msgDiv = document.getElementById("msgPassword");
+
+      if (!actual) {
+        msgDiv.innerHTML = `<div class="msg-error">Debes ingresar tu contraseña actual.</div>`;
+        return;
+      }
+      const todosOk = pwdRules.every(rule => rule.test(nueva));
+      if (!todosOk) {
+        msgDiv.innerHTML = `<div class="msg-error">La nueva contraseña no cumple los requisitos de seguridad.</div>`;
+        return;
+      }
+      if (nueva !== confirmar) {
+        msgDiv.innerHTML = `<div class="msg-error">Las contraseñas no coinciden.</div>`;
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/cambiar-password", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ password_actual: actual, nueva_password: nueva })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          msgDiv.innerHTML = `<div class="msg-error">${data.error}</div>`;
+          return;
+        }
+        msgDiv.innerHTML = `<div class="msg-exito"><i class="fas fa-check-circle"></i> ${data.mensaje}</div>`;
+        document.getElementById("pwdActual").value = "";
+        document.getElementById("pwdNueva").value = "";
+        document.getElementById("pwdConfirmar").value = "";
+        document.getElementById("pwdChecklist").style.display = "none";
+        setTimeout(() => { msgDiv.innerHTML = ""; }, 4000);
+      } catch {
+        msgDiv.innerHTML = `<div class="msg-error">Error al conectar con el servidor.</div>`;
+      }
+    });
+
+    // Guardar
+    document.getElementById("btnGuardar").addEventListener("click", async () => {
+      const modo_oscuro = document.getElementById("toggleOscuro").checked;
+      const idioma = document.getElementById("selectIdioma").value;
+
+      await window.guardarPreferencias({ modo_oscuro, idioma });
+
+      const div = document.getElementById("msgFeedback");
+      div.innerHTML = `<div class="msg-exito"><i class="fas fa-check-circle"></i> ${t("cambios-guardados")}</div>`;
+      setTimeout(() => { div.innerHTML = ""; }, 3500);
+    });
+  </script>
+
+  <div id="sidebar-overlay"></div>
+  <script>
+    const btnHamburguesa = document.getElementById('btnHamburguesa');
+    const sidebarEl = document.querySelector('.sidebar');
+    const overlayEl = document.getElementById('sidebar-overlay');
+    if (btnHamburguesa) {
+      btnHamburguesa.addEventListener('click', () => {
+        sidebarEl.classList.toggle('sidebar-open');
+        overlayEl.classList.toggle('active');
+      });
+    }
+    if (overlayEl) {
+      overlayEl.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    }
+    document.querySelectorAll('.sidebar ul li').forEach(li => {
+      li.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    });
+  </script>
+</body>
+</html>

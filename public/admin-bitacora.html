@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitácora - Vives Lara</title>
+  <link rel="stylesheet" href="main.css?v=2">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .badge-accion {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-CREAR         { background: #d1fae5; color: #065f46; }
+    .badge-EDITAR        { background: #dbeafe; color: #1e40af; }
+    .badge-ELIMINAR      { background: #fee2e2; color: #991b1b; }
+    .badge-LOGIN         { background: #f3f4f6; color: #374151; }
+    .badge-SUBIR_IMAGENES { background: #ffedd5; color: #9a3412; }
+    .badge-ELIMINAR_IMAGEN { background: #fecaca; color: #7f1d1d; }
+
+    .tabla-bitacora {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .tabla-bitacora th {
+      background: #f9fafb;
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    .tabla-bitacora td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      color: #1f2937;
+      vertical-align: middle;
+    }
+    .tabla-bitacora tr:last-child td { border-bottom: none; }
+    .tabla-bitacora tr:hover td { background: #f9fafb; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+    }
+
+    .btn-secondary {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      background: #e5e7eb;
+      color: #111827;
+      transition: 0.2s;
+    }
+    .btn-secondary:hover { background: #d1d5db; }
+
+    .ip-text {
+      font-family: monospace;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .filtros-fecha {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-end;
+      padding: 14px 16px;
+      background: #f9fafb;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    html.dark .filtros-fecha {
+      background: #1e293b;
+      border-color: #334155;
+    }
+    .filtro-grupo {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 140px;
+    }
+    .filtro-grupo label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+    }
+    html.dark .filtro-grupo label {
+      color: #94a3b8;
+    }
+    .filtros-fecha .btn-secondary {
+      white-space: nowrap;
+    }
+    @media (max-width: 600px) {
+      .filtros-fecha { flex-direction: column; }
+      .filtro-grupo { min-width: 100%; }
+      .filtros-fecha .btn-secondary { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="logo"><img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara"></div>
+      <ul>
+        <li onclick="window.location.href='/admin-propiedades.html'"><i class="fas fa-building"></i> <span data-i18n="nav.propiedades">Propiedades</span></li>
+        <li onclick="window.location.href='/admin-usuarios.html'"><i class="fas fa-users"></i> <span data-i18n="nav.usuarios">Usuarios</span></li>
+        <li class="active"><i class="fas fa-clipboard-list"></i> <span data-i18n="nav.bitacora">Bitácora</span></li>
+        <li onclick="window.location.href='/admin-configuracion.html'"><i class="fas fa-cog"></i> <span data-i18n="nav.configuracion">Configuración</span></li>
+        <li onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> <span data-i18n="nav.cerrarSesion">Cerrar sesión</span></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="btnHamburguesa" class="btn-hamburguesa" aria-label="Menú"><i class="fas fa-bars"></i></button>
+        <div class="topbar-nav">
+          <span data-i18n="topbar.administracion">ADMINISTRACIÓN</span>
+          <span data-i18n="topbar.bitacora">BITÁCORA</span>
+        </div>
+
+        <div class="topbar-search">
+          <input type="text" id="buscarInput" placeholder="Buscar en bitácora..." data-i18n-placeholder="buscar-bitacora">
+          <i class="fas fa-search" style="color:black;"></i>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="btn-secondary" id="btnRecargar">
+            <i class="fas fa-rotate-right"></i> <span data-i18n="btn.recargar">Recargar</span>
+          </button>
+          <button class="btn-secondary" id="btnExportarLimpiar" style="background:#fee2e2; color:#991b1b;">
+            <i class="fas fa-file-export"></i> Exportar y Limpiar
+          </button>
+          <i class="fas fa-user-circle fa-2x"></i>
+          <span id="infoUsuario"></span>
+          <i class="fas fa-cog" title="Configuración" onclick="window.location.href='/admin-configuracion.html'" style="cursor:pointer; font-size:1.2rem;"></i>
+        </div>
+      </header>
+
+      <section style="padding: clamp(14px, 3vw, 25px);">
+        <div class="panel-card">
+          <h2 style="margin-bottom:20px;" data-i18n="registro-actividad">Registro de actividad</h2>
+
+          <div class="filtros-fecha" id="filtrosFecha">
+            <div class="filtro-grupo">
+              <label for="filtroDesde">Desde:</label>
+              <input type="date" id="filtroDesde" class="form-input">
+            </div>
+            <div class="filtro-grupo">
+              <label for="filtroHasta">Hasta:</label>
+              <input type="date" id="filtroHasta" class="form-input">
+            </div>
+            <div class="filtro-grupo">
+              <label for="filtroMes">Mes:</label>
+              <select id="filtroMes" class="form-input">
+                <option value="">Todos</option>
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+            <div class="filtro-grupo">
+              <label for="filtroAnio">Año:</label>
+              <select id="filtroAnio" class="form-input">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="filtro-grupo">
+              <label for="filtroModulo">Módulo:</label>
+              <select id="filtroModulo" class="form-input">
+                <option value="">Todos</option>
+                <option value="AUTH">AUTH</option>
+                <option value="USUARIOS">USUARIOS</option>
+                <option value="PROPIEDADES">PROPIEDADES</option>
+              </select>
+            </div>
+            <div class="filtro-grupo">
+              <label for="filtroUsuario">Usuario:</label>
+              <select id="filtroUsuario" class="form-input">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button class="btn-secondary" id="btnLimpiarFechas">
+                <i class="fas fa-times-circle"></i> Limpiar fechas
+              </button>
+            </div>
+          </div>
+
+          <div class="tabla-wrapper">
+            <table class="tabla-bitacora">
+              <thead>
+                <tr>
+                  <th data-i18n="col-fecha-hora">Fecha / Hora</th>
+                  <th data-i18n="col-usuario">Usuario</th>
+                  <th data-i18n="col-modulo">Módulo</th>
+                  <th data-i18n="col-accion">Acción</th>
+                  <th data-i18n="col-descripcion">Descripción</th>
+                  <th>IP</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBitacora"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!token || !usuarioGuardado) {
+      window.location.href = "/admin-login.html";
+    }
+
+    window.iniciarVerificacionSesion();
+
+    if (usuarioGuardado.rol !== "admin") {
+      window.location.href = "/admin-propiedades.html";
+    }
+
+    document.getElementById("infoUsuario").textContent =
+      `${usuarioGuardado.nombre_completo} (${usuarioGuardado.rol})`;
+
+    let registros = [];
+
+    function badgeClass(accion) {
+      const map = {
+        CREAR: "badge-CREAR",
+        EDITAR: "badge-EDITAR",
+        ELIMINAR: "badge-ELIMINAR",
+        LOGIN: "badge-LOGIN",
+        SUBIR_IMAGENES: "badge-SUBIR_IMAGENES",
+        ELIMINAR_IMAGEN: "badge-ELIMINAR_IMAGEN"
+      };
+      return map[accion] || "badge-LOGIN";
+    }
+
+    function renderTabla(lista) {
+      const tbody = document.getElementById("tablaBitacora");
+      tbody.innerHTML = "";
+
+      if (!lista.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <i class="fas fa-clipboard" style="font-size:32px;margin-bottom:10px;display:block;"></i>
+              ${t("sin-registros")}
+            </td>
+          </tr>`;
+        return;
+      }
+
+      lista.forEach(r => {
+        const fecha = new Date(r.creado_en).toLocaleString("es-MX", {
+          day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="white-space:nowrap;">${fecha}</td>
+          <td>${r.usuario_nombre || "—"}</td>
+          <td>${r.modulo || "—"}</td>
+          <td><span class="badge-accion ${badgeClass(r.accion)}">${r.accion}</span></td>
+          <td>${r.descripcion || "—"}</td>
+          <td class="ip-text">${r.ip || "—"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function poblarUsuarios() {
+      const usuarios = [...new Set(registros.map(r => r.usuario_nombre).filter(Boolean))].sort();
+      const select = document.getElementById("filtroUsuario");
+      const valorActual = select.value;
+      select.innerHTML = '<option value="">Todos</option>';
+      usuarios.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u;
+        opt.textContent = u;
+        select.appendChild(opt);
+      });
+      if (valorActual) select.value = valorActual;
+    }
+
+    function poblarAnios() {
+      const anios = [...new Set(registros.map(r => new Date(r.creado_en).getFullYear()))]
+        .filter(Boolean)
+        .sort((a, b) => b - a);
+      const select = document.getElementById("filtroAnio");
+      const valorActual = select.value;
+      select.innerHTML = '<option value="">Todos</option>';
+      anios.forEach(a => {
+        const opt = document.createElement("option");
+        opt.value = a;
+        opt.textContent = a;
+        select.appendChild(opt);
+      });
+      if (valorActual) select.value = valorActual;
+    }
+
+    function filtrarBitacora() {
+      const texto = document.getElementById("buscarInput").value.trim().toLowerCase();
+      const desde = document.getElementById("filtroDesde").value;
+      const hasta = document.getElementById("filtroHasta").value;
+      const mes = document.getElementById("filtroMes").value;
+      const anio = document.getElementById("filtroAnio").value;
+      const usuario = document.getElementById("filtroUsuario").value;
+      const modulo = document.getElementById("filtroModulo").value;
+
+      const filtrados = registros.filter(r => {
+        const fecha = new Date(r.creado_en);
+
+        if (texto && ![r.usuario_nombre, r.modulo, r.accion, r.descripcion, r.ip].some(
+          v => v && v.toLowerCase().includes(texto)
+        )) return false;
+
+        if (desde) {
+          const fechaDesde = new Date(desde + "T00:00:00");
+          if (fecha < fechaDesde) return false;
+        }
+
+        if (hasta) {
+          const fechaHasta = new Date(hasta + "T23:59:59.999");
+          if (fecha > fechaHasta) return false;
+        }
+
+        if (mes && fecha.getMonth() + 1 !== Number(mes)) return false;
+
+        if (anio && fecha.getFullYear() !== Number(anio)) return false;
+
+        if (usuario && r.usuario_nombre !== usuario) return false;
+
+        if (modulo && r.modulo !== modulo) return false;
+
+        return true;
+      });
+
+      renderTabla(filtrados);
+    }
+
+    async function cargarBitacora() {
+      try {
+        const res = await fetch("/api/bitacora", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          console.error(data.error);
+          return;
+        }
+        registros = Array.isArray(data) ? data : [];
+        poblarAnios();
+        poblarUsuarios();
+        filtrarBitacora();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function exportarCSV() {
+      const encabezado = ["Fecha/Hora", "Usuario", "Módulo", "Acción", "Descripción", "IP"];
+      const escapar = v => {
+        const s = (v ?? "").toString();
+        return s.includes(",") || s.includes('"') || s.includes("\n")
+          ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const filas = registros.map(r => {
+        const fecha = new Date(r.creado_en).toLocaleString("es-MX", {
+          day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+        return [fecha, r.usuario_nombre, r.modulo, r.accion, r.descripcion, r.ip].map(escapar).join(",");
+      });
+      const csv = [encabezado.join(","), ...filas].join("\r\n");
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bitacora_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("btnExportarLimpiar").addEventListener("click", async () => {
+      const confirmar = confirm(
+        "¿Seguro que deseas limpiar la bitácora?\n\n" +
+        "Se exportará un CSV con todos los registros actuales y no se podrán recuperar desde el sistema."
+      );
+      if (!confirmar) return;
+
+      exportarCSV();
+
+      try {
+        const res = await fetch("/api/bitacora/limpiar", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || "Error al limpiar la bitácora");
+          return;
+        }
+        await cargarBitacora();
+      } catch (e) {
+        alert("Error de conexión al limpiar la bitácora");
+      }
+    });
+
+    document.getElementById("btnRecargar").addEventListener("click", cargarBitacora);
+
+    document.getElementById("buscarInput").addEventListener("input", filtrarBitacora);
+    document.getElementById("filtroDesde").addEventListener("change", filtrarBitacora);
+    document.getElementById("filtroHasta").addEventListener("change", filtrarBitacora);
+    document.getElementById("filtroMes").addEventListener("change", filtrarBitacora);
+    document.getElementById("filtroAnio").addEventListener("change", filtrarBitacora);
+    document.getElementById("filtroModulo").addEventListener("change", filtrarBitacora);
+    document.getElementById("filtroUsuario").addEventListener("change", filtrarBitacora);
+
+    document.getElementById("btnLimpiarFechas").addEventListener("click", () => {
+      document.getElementById("filtroDesde").value = "";
+      document.getElementById("filtroHasta").value = "";
+      document.getElementById("filtroMes").value = "";
+      document.getElementById("filtroAnio").value = "";
+      document.getElementById("filtroModulo").value = "";
+      document.getElementById("filtroUsuario").value = "";
+      filtrarBitacora();
+    });
+
+    function cerrarSesion() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      window.location.href = "/admin-login.html";
+    }
+
+    cargarBitacora();
+  </script>
+
+  <div id="sidebar-overlay"></div>
+  <script>
+    const btnHamburguesa = document.getElementById('btnHamburguesa');
+    const sidebarEl = document.querySelector('.sidebar');
+    const overlayEl = document.getElementById('sidebar-overlay');
+    if (btnHamburguesa) {
+      btnHamburguesa.addEventListener('click', () => {
+        sidebarEl.classList.toggle('sidebar-open');
+        overlayEl.classList.toggle('active');
+      });
+    }
+    if (overlayEl) {
+      overlayEl.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    }
+    document.querySelectorAll('.sidebar ul li').forEach(li => {
+      li.addEventListener('click', () => {
+        sidebarEl.classList.remove('sidebar-open');
+        overlayEl.classList.remove('active');
+      });
+    });
+  </script>
+</body>
+</html>

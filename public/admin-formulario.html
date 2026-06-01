@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propiedad - Vives Lara</title>
+    <link rel="stylesheet" href="main.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .badge-modo {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .badge-nueva { background: #22c55e; color: #fff; }
+        .badge-editar { background: #f97316; color: #fff; }
+
+        .msg-exito {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin: 0 20px 10px;
+        }
+        .msg-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin: 0 20px 10px;
+        }
+
+        .campo-error {
+            border: 2px solid #dc3545 !important;
+        }
+        .msg-campo-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .img-card {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            cursor: grab;
+            flex-shrink: 0;
+            border: 2px solid transparent;
+            transition: border-color 0.15s, opacity 0.15s;
+        }
+        .img-card:active { cursor: grabbing; }
+        .img-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+            user-select: none;
+        }
+        .img-card.dragging {
+            opacity: 0.4;
+            cursor: grabbing;
+        }
+        .img-card.drag-over {
+            border: 2px dashed #2563eb;
+        }
+
+        .btn-eliminar-img {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 13px;
+            cursor: pointer;
+            line-height: 22px;
+            text-align: center;
+            padding: 0;
+            z-index: 2;
+        }
+
+        .badge-num {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .badge-num.principal { background: #2563eb; }
+        .badge-num.secundario { background: rgba(55,65,81,0.75); }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content" style="width: 100%;">
+            <header class="topbar">
+                <div class="topbar-nav">
+                    <span onclick="window.location.href='/admin-propiedades.html'" style="cursor:pointer;" data-i18n="topbar.inventario">INICIO</span>
+                    <span data-i18n="topbar.propiedades">PROPIEDADES</span>
+                    <span id="breadcrumb" data-i18n="nueva-propiedad-titulo">NUEVA PROPIEDAD</span>
+                    <span id="badgeModo" class="badge-modo badge-nueva" data-i18n="nueva-propiedad-titulo">NUEVA PROPIEDAD</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-cog" title="Configuración" onclick="window.location.href='/admin-configuracion.html'" style="cursor:pointer; font-size:1.2rem;"></i>
+                </div>
+            </header>
+
+            <div id="msgFeedback"></div>
+
+            <div style="display: flex; gap: 20px; padding: 20px; flex-wrap: wrap;">
+                <!-- Panel de imágenes -->
+                <div style="flex: 2 1 min(320px, 100%); min-width: 0; background: #D3D3D3; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-weight: bold; padding: 20px; gap: 10px;">
+                    <label for="imagenes" data-i18n="selecciona-imagenes">Selecciona imágenes</label>
+                    <input type="file" id="imagenes" multiple accept="image/*">
+                    <small>Puedes subir varias imágenes</small>
+
+                    <!-- Imágenes existentes (modo edición) -->
+                    <div id="imagenesExistentes" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px;"></div>
+
+                    <!-- Preview de nuevas imágenes seleccionadas -->
+                    <div id="previewImagenes" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px;"></div>
+                </div>
+
+                <!-- Panel derecho -->
+                <div style="flex: 1 1 min(280px, 100%); min-width: 0; display: flex; flex-direction: column; gap: 10px; text-align: center;">
+                    <div class="campo-grupo" style="text-align:left;">
+                        <label for="propiedad">Nombre de la propiedad</label>
+                        <input type="text" id="propiedad" class="form-input" placeholder="Nombre de la propiedad" style="text-align: center;">
+                    </div>
+                    <div class="campo-grupo" style="text-align:left;">
+                        <label for="precio">Precio</label>
+                        <input type="text" inputmode="numeric" id="precio" class="form-input" placeholder="Precio" style="text-align: center;">
+                    </div>
+                    <div class="campo-grupo" style="text-align:left;">
+                        <label for="recamaras">Recámaras</label>
+                        <input type="number" id="recamaras" class="form-input" placeholder="Número de recámaras">
+                    </div>
+                    <div class="campo-grupo" style="text-align:left;">
+                        <label for="banos">Baños</label>
+                        <input type="number" id="banos" class="form-input" placeholder="Número de baños">
+                    </div>
+                    <div class="campo-grupo" style="text-align:left;">
+                        <label for="estado_publicacion">Estado de publicación</label>
+                        <select id="estado_publicacion" class="form-input">
+                            <option value="borrador">Borrador</option>
+                            <option value="publicada">Publicada</option>
+                            <option value="pausada">Pausada</option>
+                            <option value="vendida">Vendida</option>
+                            <option value="rentada">Rentada</option>
+                        </select>
+                    </div>
+                    <button type="button" id="btnGuardar" class="btn-guardar-morado" style="background: #5A52D5; font-weight: bold;" data-i18n="crear-propiedad-btn">
+                        CREAR PROPIEDAD
+                    </button>
+                    <button type="button" id="btnVistaPrevia" style="display:none; border:none; border-radius:12px; padding:13px 18px; background:#e5e7eb; color:#374151; font-weight:bold; cursor:pointer; transition:0.2s ease;">
+                        &#128065; <span data-i18n="vista-previa">Vista previa</span>
+                    </button>
+                    <button type="button" id="btnCancelar" onclick="confirmarCancelar()" style="border:none; border-radius:12px; padding:13px 18px; background:#6b7280; color:white; font-weight:bold; cursor:pointer; transition:0.2s ease;">
+                        <i class="fas fa-arrow-left"></i> <span data-i18n="cancelar">Cancelar</span>
+                    </button>
+                </div>
+            </div>
+
+            <form class="formulario-grid" style="padding:20px; display:grid; gap:20px;">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="campo-grupo">
+                        <label for="nivel_piso">Nivel / Piso</label>
+                        <input type="text" id="nivel_piso" class="form-input" placeholder="Nivel / piso">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="tipo_operacion">Tipo de operación</label>
+                        <select id="tipo_operacion" class="form-input">
+                            <option value="">Venta / Renta</option>
+                            <option value="venta">Venta</option>
+                            <option value="renta">Renta</option>
+                            <option value="ambas">Ambas</option>
+                        </select>
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="tipo_inmueble">Tipo de inmueble</label>
+                        <select id="tipo_inmueble" class="form-input">
+                            <option value="">Tipo de inmueble</option>
+                            <option value="casa">Casa</option>
+                            <option value="departamento">Departamento</option>
+                            <option value="terreno">Terreno</option>
+                            <option value="local">Local</option>
+                            <option value="oficina">Oficina</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="direccion">Dirección</label>
+                        <input type="text" id="direccion" class="form-input" placeholder="Dirección">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="zona">Zona</label>
+                        <input type="text" id="zona" class="form-input" placeholder="Zona">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="estacionamiento">Estacionamiento</label>
+                        <input type="number" id="estacionamiento" class="form-input" placeholder="Estacionamiento">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="edificio">Edificio</label>
+                        <input type="number" id="edificio" class="form-input" placeholder="Edificio">
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="campo-grupo">
+                        <label for="amueblado">Amueblado</label>
+                        <select id="amueblado" class="form-input">
+                            <option value="false">No</option>
+                            <option value="true">Sí</option>
+                        </select>
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="condominio">Condominio</label>
+                        <select id="condominio" class="form-input">
+                            <option value="false">No</option>
+                            <option value="true">Sí</option>
+                        </select>
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="estado_conservacion">Estado de conservación</label>
+                        <input type="text" id="estado_conservacion" class="form-input" placeholder="Estado de conservación">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="orientacion_inmueble">Orientación del inmueble</label>
+                        <input type="text" id="orientacion_inmueble" class="form-input" placeholder="Orientación del inmueble">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="superficie_construccion_m2">Superficie construcción (m²)</label>
+                        <input type="number" id="superficie_construccion_m2" class="form-input" placeholder="Superficie construcción (m²)">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="superficie_terreno_m2">Superficie terreno (m²)</label>
+                        <input type="number" id="superficie_terreno_m2" class="form-input" placeholder="Superficie terreno (m²)">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="acabados">Acabados</label>
+                        <input type="text" id="acabados" class="form-input" placeholder="Acabados">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="amenidades">Amenidades</label>
+                        <input type="text" id="amenidades" class="form-input" placeholder="Amenidades">
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="coordenadas">Coordenadas (lat, lng)</label>
+                        <input type="text" id="coordenadas" class="form-input" placeholder="ej. 19.1738,-96.1342">
+                    </div>
+                </div>
+
+                <div class="campo-grupo" style="grid-column:1 / -1;">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" class="form-input form-area" placeholder="Detalles de la propiedad"></textarea>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const token = localStorage.getItem("token");
+        const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+        if (!token || !usuarioGuardado) {
+            window.location.href = "/admin-login.html";
+        }
+
+        window.iniciarVerificacionSesion();
+
+        if (usuarioGuardado.rol !== "admin" && usuarioGuardado.rol !== "editor") {
+            window.location.href = "/admin-login.html";
+        }
+
+        function formatearPrecio(valor) {
+            const num = parseFloat(valor.toString().replace(/,/g, ''));
+            if (isNaN(num)) return '';
+            return Math.round(num).toLocaleString('es-MX');
+        }
+
+        function limpiarPrecio(valor) {
+            return Number(valor.toString().replace(/[^0-9]/g, '')) || null;
+        }
+
+        document.getElementById('precio').addEventListener('input', function() {
+            const cursor = this.selectionStart;
+            const prevLen = this.value.length;
+            this.value = formatearPrecio(this.value);
+            // Ajustar posición del cursor tras reformatear
+            const diff = this.value.length - prevLen;
+            this.setSelectionRange(cursor + diff, cursor + diff);
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const propiedadId = params.get("id");
+        const modoEdicion = !!propiedadId;
+        console.log('propiedadId:', propiedadId, 'modoEdicion:', modoEdicion);
+
+        // Configurar UI según modo
+        if (modoEdicion) {
+            document.getElementById("breadcrumb").textContent = t("editar-propiedad-titulo");
+            document.getElementById("badgeModo").textContent = t("topbar.editando");
+            document.getElementById("badgeModo").classList.replace("badge-nueva", "badge-editar");
+            const btnGuardar = document.getElementById("btnGuardar");
+            btnGuardar.textContent = t("guardar-cambios");
+            btnGuardar.dataset.i18n = "guardar-cambios";
+            document.getElementById("btnVistaPrevia").style.display = "block";
+            document.getElementById("btnVistaPrevia").addEventListener("click", () => {
+                const datosPrevia = {
+                    propiedad: document.getElementById("propiedad").value,
+                    precio: document.getElementById("precio").value,
+                    recamaras: document.getElementById("recamaras").value,
+                    banos: document.getElementById("banos").value,
+                    estacionamiento: document.getElementById("estacionamiento").value,
+                    tipo_operacion: document.getElementById("tipo_operacion").value,
+                    tipo_inmueble: document.getElementById("tipo_inmueble").value,
+                    direccion: document.getElementById("direccion").value,
+                    zona: document.getElementById("zona").value,
+                    descripcion: document.getElementById("descripcion").value,
+                    amenidades: document.getElementById("amenidades").value,
+                    acabados: document.getElementById("acabados").value,
+                    estado_conservacion: document.getElementById("estado_conservacion").value,
+                    orientacion_inmueble: document.getElementById("orientacion_inmueble").value,
+                    superficie_construccion_m2: document.getElementById("superficie_construccion_m2").value,
+                    superficie_terreno_m2: document.getElementById("superficie_terreno_m2").value,
+                    nivel_piso: document.getElementById("nivel_piso").value,
+                    edificio: document.getElementById("edificio").value,
+                    amueblado: document.getElementById("amueblado").value,
+                    condominio: document.getElementById("condominio").value,
+                    estado_publicacion: document.getElementById("estado_publicacion").value,
+                    coordenadas: document.getElementById("coordenadas").value,
+                    _previaTemporal: true,
+                    _timestamp: Date.now()
+                };
+                localStorage.setItem("previa_temporal_" + propiedadId, JSON.stringify(datosPrevia));
+                window.open('/admin-detalles.html?id=' + propiedadId + '&from=formulario&previa=1', '_blank');
+            });
+        }
+
+        // Preview de nuevas imágenes seleccionadas
+        const inputImagenes = document.getElementById("imagenes");
+        const preview = document.getElementById("previewImagenes");
+
+        inputImagenes.addEventListener("change", () => {
+            preview.innerHTML = "";
+            const archivos = inputImagenes.files;
+            for (let i = 0; i < archivos.length && i < 6; i++) {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(archivos[i]);
+                img.style.cssText = "width:100px;height:80px;object-fit:cover;border-radius:8px;border:2px solid white;";
+                preview.appendChild(img);
+            }
+        });
+
+        function mostrarMensaje(tipo, texto) {
+            const div = document.getElementById("msgFeedback");
+            div.innerHTML = `<div class="msg-${tipo}">${texto}</div>`;
+            if (tipo === "exito") {
+                setTimeout(() => { window.location.href = "/admin-propiedades.html"; }, 1500);
+            }
+        }
+
+        function confirmarCancelar() {
+            if (confirm("¿Seguro que quieres cancelar sin guardar los cambios?")) {
+                window.location.href = "/admin-propiedades.html";
+            }
+        }
+
+        // IDs de imágenes marcadas para eliminar al guardar
+        const imagenesAEliminar = [];
+
+        // Estado local del orden/principal de imágenes existentes
+        let imagenesOrden = []; // [{ id, url_archivo, principal, orden }]
+        let dragSrcIdx = null;
+
+        function renderImagenesExistentes(imagenes) {
+            imagenesOrden = imagenes.map((img, i) => ({
+                id: img.id,
+                url_archivo: img.url_archivo,
+                orden: i + 1
+            }));
+            _renderGaleria();
+        }
+
+        function _renderGaleria() {
+            const contenedor = document.getElementById("imagenesExistentes");
+            contenedor.innerHTML = "";
+
+            imagenesOrden.forEach((item, idx) => {
+                const pendienteEliminar = imagenesAEliminar.includes(item.id);
+                const esPrincipal = idx === 0;
+
+                const card = document.createElement("div");
+                card.className = "img-card";
+                card.draggable = true;
+                card.dataset.idx = idx;
+                if (pendienteEliminar) {
+                    card.style.opacity = "0.35";
+                    card.style.filter = "grayscale(80%)";
+                }
+
+                const imgEl = document.createElement("img");
+                imgEl.src = item.url_archivo;
+                imgEl.alt = "imagen";
+                imgEl.draggable = false;
+
+                // Badge numérico (esquina superior izquierda)
+                const badgeNum = document.createElement("span");
+                badgeNum.className = "badge-num " + (esPrincipal ? "principal" : "secundario");
+                badgeNum.textContent = idx + 1;
+                card.appendChild(badgeNum);
+
+                // × botón eliminar (esquina superior derecha)
+                const btnDel = document.createElement("button");
+                btnDel.className = "btn-eliminar-img";
+                btnDel.title = pendienteEliminar ? "Deshacer (no se eliminará al guardar)" : "Marcar para eliminar";
+                btnDel.textContent = "×";
+                if (pendienteEliminar) btnDel.style.background = "#6b7280";
+                btnDel.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const idx2 = imagenesAEliminar.indexOf(item.id);
+                    if (idx2 === -1) {
+                        imagenesAEliminar.push(item.id);
+                    } else {
+                        imagenesAEliminar.splice(idx2, 1);
+                    }
+                    _renderGaleria();
+                });
+
+                // ── Drag & drop desktop ──
+                card.addEventListener("dragstart", (e) => {
+                    dragSrcIdx = idx;
+                    e.dataTransfer.effectAllowed = "move";
+                    setTimeout(() => card.classList.add("dragging"), 0);
+                });
+                card.addEventListener("dragend", () => {
+                    dragSrcIdx = null;
+                    document.querySelectorAll(".img-card.dragging").forEach(c => c.classList.remove("dragging"));
+                    document.querySelectorAll(".img-card.drag-over").forEach(c => c.classList.remove("drag-over"));
+                });
+                card.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    if (dragSrcIdx !== null && dragSrcIdx !== idx) card.classList.add("drag-over");
+                });
+                card.addEventListener("dragleave", () => {
+                    card.classList.remove("drag-over");
+                });
+                card.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    card.classList.remove("drag-over");
+                    if (dragSrcIdx === null || dragSrcIdx === idx) return;
+                    const moved = imagenesOrden.splice(dragSrcIdx, 1)[0];
+                    imagenesOrden.splice(idx, 0, moved);
+                    dragSrcIdx = null;
+                    _renderGaleria();
+                });
+
+                // ── Drag & drop touch (mobile) ──
+                let touchSrcIdx = null;
+                card.addEventListener("touchstart", () => {
+                    touchSrcIdx = idx;
+                    card.classList.add("dragging");
+                }, { passive: true });
+                card.addEventListener("touchmove", (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const targetCard = el ? el.closest(".img-card") : null;
+                    document.querySelectorAll(".img-card.drag-over").forEach(c => c.classList.remove("drag-over"));
+                    if (targetCard && parseInt(targetCard.dataset.idx) !== touchSrcIdx) {
+                        targetCard.classList.add("drag-over");
+                    }
+                }, { passive: false });
+                card.addEventListener("touchend", (e) => {
+                    card.classList.remove("dragging");
+                    document.querySelectorAll(".img-card.drag-over").forEach(c => c.classList.remove("drag-over"));
+                    const touch = e.changedTouches[0];
+                    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const targetCard = el ? el.closest(".img-card") : null;
+                    if (targetCard) {
+                        const targetIdx = parseInt(targetCard.dataset.idx);
+                        if (touchSrcIdx !== null && targetIdx !== touchSrcIdx) {
+                            const moved = imagenesOrden.splice(touchSrcIdx, 1)[0];
+                            imagenesOrden.splice(targetIdx, 0, moved);
+                            _renderGaleria();
+                        }
+                    }
+                    touchSrcIdx = null;
+                });
+
+                card.appendChild(imgEl);
+                card.appendChild(btnDel);
+                contenedor.appendChild(card);
+            });
+        }
+
+        function setVal(id, val) {
+            const el = document.getElementById(id);
+            if (!el || val === null || val === undefined) return;
+            el.value = val;
+        }
+
+        async function cargarPropiedad() {
+            try {
+                const res = await fetch(`/api/propiedades/${propiedadId}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    mostrarMensaje("error", "No se pudo cargar la propiedad");
+                    return;
+                }
+                const d = await res.json();
+
+                setVal("propiedad", d.propiedad);
+                setVal("nivel_piso", d.nivel_piso);
+                setVal("tipo_operacion", d.tipo_operacion);
+                setVal("tipo_inmueble", d.tipo_inmueble);
+                setVal("precio", d.precio != null ? formatearPrecio(d.precio) : '');
+                setVal("recamaras", d.recamaras);
+                setVal("banos", d.banos);
+                setVal("amueblado", d.amueblado ? "true" : "false");
+                setVal("direccion", d.direccion);
+                setVal("zona", d.zona);
+                setVal("estacionamiento", d.estacionamiento);
+                setVal("condominio", d.condominio ? "true" : "false");
+                setVal("edificio", d.edificio);
+                setVal("estado_conservacion", d.estado_conservacion);
+                setVal("orientacion_inmueble", d.orientacion_inmueble);
+                setVal("superficie_construccion_m2", d.superficie_construccion_m2);
+                setVal("superficie_terreno_m2", d.superficie_terreno_m2);
+                setVal("acabados", d.acabados);
+                setVal("amenidades", d.amenidades);
+                setVal("coordenadas", d.coordenadas);
+                setVal("descripcion", d.descripcion);
+                setVal("estado_publicacion", d.estado_publicacion);
+
+                if (d.imagenes && d.imagenes.length > 0) {
+                    renderImagenesExistentes(d.imagenes);
+                }
+            } catch {
+                mostrarMensaje("error", "Error al conectar con el servidor");
+            }
+        }
+
+        if (modoEdicion) {
+            cargarPropiedad();
+        }
+
+        function limpiarError(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove("campo-error");
+            const errSpan = el.parentElement.querySelector(`.error-${id}`);
+            if (errSpan) errSpan.remove();
+        }
+
+        function marcarError(id, mensaje) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.add("campo-error");
+            if (!el.parentElement.querySelector(`.error-${id}`)) {
+                const span = document.createElement("span");
+                span.className = `msg-campo-error error-${id}`;
+                span.textContent = mensaje;
+                el.insertAdjacentElement("afterend", span);
+            }
+        }
+
+        function validarCampos() {
+            const campos = [
+                { id: "propiedad", test: v => v.trim() !== "", msg: "El nombre de la propiedad es obligatorio" },
+                { id: "tipo_operacion", test: v => v !== "", msg: "Debes seleccionar Venta o Renta" },
+                { id: "tipo_inmueble", test: v => v !== "", msg: "Debes seleccionar el tipo de inmueble" },
+                { id: "precio", test: v => limpiarPrecio(v) > 0, msg: "El precio es obligatorio y debe ser mayor a 0" },
+                { id: "direccion", test: v => v.trim() !== "", msg: "La dirección es obligatoria" }
+            ];
+
+            // Limpiar errores previos
+            campos.forEach(c => limpiarError(c.id));
+
+            let primerError = null;
+            let valido = true;
+
+            campos.forEach(c => {
+                const el = document.getElementById(c.id);
+                if (!el) return;
+                if (!c.test(el.value)) {
+                    marcarError(c.id, c.msg);
+                    if (!primerError) primerError = el;
+                    valido = false;
+
+                    // Limpiar al cambiar
+                    const evts = c.id === "tipo_operacion" || c.id === "tipo_inmueble" ? ["change"] : ["input"];
+                    evts.forEach(evt => {
+                        el.addEventListener(evt, () => limpiarError(c.id), { once: true });
+                    });
+                }
+            });
+
+            if (primerError) {
+                primerError.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+
+            return valido;
+        }
+
+        document.getElementById("btnGuardar").addEventListener("click", async () => {
+            if (!validarCampos()) return;
+            const body = {
+                propiedad: document.getElementById("propiedad").value.trim(),
+                nivel_piso: document.getElementById("nivel_piso").value.trim(),
+                tipo_operacion: document.getElementById("tipo_operacion").value,
+                tipo_inmueble: document.getElementById("tipo_inmueble").value,
+                precio: limpiarPrecio(document.getElementById("precio").value),
+                recamaras: document.getElementById("recamaras").value !== "" ? Number(document.getElementById("recamaras").value) : 0,
+                banos: document.getElementById("banos").value !== "" ? Number(document.getElementById("banos").value) : 0,
+                amueblado: document.getElementById("amueblado").value === "true",
+                direccion: document.getElementById("direccion").value.trim(),
+                zona: document.getElementById("zona").value.trim(),
+                estacionamiento: document.getElementById("estacionamiento").value !== "" ? Number(document.getElementById("estacionamiento").value) : 0,
+                condominio: document.getElementById("condominio").value === "true",
+                edificio: document.getElementById("edificio").value !== "" ? Number(document.getElementById("edificio").value) : null,
+                estado_conservacion: document.getElementById("estado_conservacion").value.trim(),
+                orientacion_inmueble: document.getElementById("orientacion_inmueble").value.trim(),
+                superficie_construccion_m2: document.getElementById("superficie_construccion_m2").value !== "" ? Number(document.getElementById("superficie_construccion_m2").value) : null,
+                superficie_terreno_m2: document.getElementById("superficie_terreno_m2").value !== "" ? Number(document.getElementById("superficie_terreno_m2").value) : null,
+                acabados: document.getElementById("acabados").value.trim(),
+                descripcion: document.getElementById("descripcion").value.trim(),
+                amenidades: document.getElementById("amenidades").value.trim(),
+                coordenadas: document.getElementById("coordenadas").value.trim() || null,
+                estado_publicacion: document.getElementById("estado_publicacion").value
+            };
+
+            try {
+                let id;
+                if (modoEdicion) {
+                    // 1. Eliminar imágenes marcadas
+                    for (const imgId of imagenesAEliminar) {
+                        await fetch(`/api/propiedades/${propiedadId}/imagenes/${imgId}`, {
+                            method: "DELETE",
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                    }
+                    imagenesAEliminar.length = 0;
+
+                    // 2. Guardar cambios de la propiedad
+                    const res = await fetch(`/api/propiedades/${propiedadId}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await res.json();
+                    console.log('Status PUT:', res.status);
+                    console.log('Respuesta PUT:', data);
+                    if (!res.ok) {
+                        console.error('Error PUT:', data);
+                        mostrarMensaje("error", data.error || "No se pudo guardar la propiedad");
+                        return;
+                    }
+                    id = propiedadId;
+
+                    // 3. Actualizar orden y principal de imágenes existentes
+                    const imagenesActivas = imagenesOrden.filter(img => !imagenesAEliminar.includes(img.id));
+                    console.log("Array a enviar al PATCH:", JSON.stringify(imagenesActivas.map((img, i) => ({ id: img.id, orden: i + 1, principal: i === 0 }))));
+                    if (imagenesActivas.length > 0) {
+                        await fetch(`/api/propiedades/${propiedadId}/imagenes/orden`, {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                imagenes: imagenesActivas.map((img, i) => ({
+                                    id: img.id,
+                                    orden: i + 1,
+                                    principal: i === 0
+                                }))
+                            })
+                        });
+                    }
+                } else {
+                    const res = await fetch("/api/propiedades", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        mostrarMensaje("error", data.error || "No se pudo crear la propiedad");
+                        return;
+                    }
+                    id = data.propiedad.id;
+                }
+
+                const archivos = Array.from(inputImagenes.files);
+                if (archivos.length > 0) {
+                    const LOTE = 10;
+                    for (let i = 0; i < archivos.length; i += LOTE) {
+                        const lote = archivos.slice(i, i + LOTE);
+                        const formData = new FormData();
+                        for (const archivo of lote) {
+                            formData.append("imagenes", archivo);
+                        }
+                        const resImg = await fetch(`/api/propiedades/${id}/imagenes`, {
+                            method: "POST",
+                            headers: { "Authorization": `Bearer ${token}` },
+                            body: formData
+                        });
+                        const dataImg = await resImg.json();
+                        if (!resImg.ok) {
+                            mostrarMensaje("error", dataImg.error || "Propiedad guardada, pero falló la subida de imágenes");
+                            return;
+                        }
+                    }
+                }
+
+                if (modoEdicion) localStorage.removeItem("previa_temporal_" + propiedadId);
+                mostrarMensaje("exito", modoEdicion ? "Propiedad actualizada correctamente" : "Propiedad creada correctamente");
+            } catch {
+                mostrarMensaje("error", "Error al conectar con el servidor");
+            }
+        });
+    </script>
+</body>
+</html>

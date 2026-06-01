@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check /c/Users/saulo/trabajo/Proyecto/seed-propiedades.js)",
+      "Bash(node *)",
+      "Bash(ls *)"
+    ]
+  }
+}

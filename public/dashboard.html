@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Usuarios</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f6f8;
+    }
+
+    header {
+      background: #0d6efd;
+      color: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    input, select, button {
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      background: #0d6efd;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    button:hover {
+      background: #0b5ed7;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    table th {
+      background: #f1f1f1;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <strong>Dashboard Administrativo</strong>
+    </div>
+    <div class="top-actions">
+      <span id="infoUsuario"></span>
+      <button onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main>
+    <h2>Alta de usuarios</h2>
+
+    <form id="formUsuario">
+      <input type="text" id="nombre_completo" placeholder="Nombre completo" required>
+      <input type="text" id="usuario" placeholder="Usuario" required>
+      <input type="email" id="correo" placeholder="Correo electrónico" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+
+      <select id="rol" required>
+        <option value="">Selecciona un rol</option>
+        <option value="admin">Admin</option>
+        <option value="editor">Editor</option>
+        <option value="capturista">Capturista</option>
+      </select>
+
+      <button type="submit">Crear usuario</button>
+    </form>
+
+    <h2>Usuarios registrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Usuario</th>
+          <th>Correo</th>
+          <th>Rol</th>
+          <th>Activo</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody id="tablaUsuarios"></tbody>
+    </table>
+  </main>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!token || !usuarioGuardado) {
+      window.location.href = "/admin-login.html";
+    }
+
+    document.getElementById("infoUsuario").textContent =
+      `${usuarioGuardado.nombre_completo} (${usuarioGuardado.rol})`;
+
+    if (usuarioGuardado.rol !== "admin") {
+      alert("Acceso denegado. Solo admin.");
+      window.location.href = "/admin-login.html";
+    }
+
+    async function cargarUsuarios() {
+      try {
+        const res = await fetch("/api/usuarios", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || "Error al cargar usuarios");
+          return;
+        }
+
+        const tabla = document.getElementById("tablaUsuarios");
+        tabla.innerHTML = "";
+
+        data.forEach(user => {
+          const fila = `
+            <tr>
+              <td>${user.nombre_completo}</td>
+              <td>${user.usuario}</td>
+              <td>${user.correo}</td>
+              <td>${user.rol}</td>
+              <td>${user.activo ? "Sí" : "No"}</td>
+              <td>${new Date(user.creado_en).toLocaleString()}</td>
+            </tr>
+          `;
+          tabla.innerHTML += fila;
+        });
+      } catch (error) {
+        console.error(error);
+        alert("Error al obtener usuarios");
+      }
+    }
+
+    document.getElementById("formUsuario").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const nombre_completo = document.getElementById("nombre_completo").value;
+      const usuario = document.getElementById("usuario").value;
+      const correo = document.getElementById("correo").value;
+      const password = document.getElementById("password").value;
+      const rol = document.getElementById("rol").value;
+
+      try {
+        const res = await fetch("/api/usuarios", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            nombre_completo,
+            usuario,
+            correo,
+            password,
+            rol
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("Usuario creado correctamente");
+          document.getElementById("formUsuario").reset();
+          cargarUsuarios();
+        } else {
+          alert(data.error);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Error al crear usuario");
+      }
+    });
+
+    function cerrarSesion() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      window.location.href = "/admin-login.html";
+    }
+
+    cargarUsuarios();
+  </script>
+
+</body>
+</html>

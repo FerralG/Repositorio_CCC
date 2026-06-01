@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles - Vives Lara</title>
+    <link rel="stylesheet" href="main.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ── Wrapper del contenido de detalle ── */
+        .detail-wrapper {
+            max-width: 900px;
+            margin: 24px auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* ── Barra de acciones admin (Volver / estado / Editar) ── */
+        .admin-actions-bar {
+            max-width: 900px;
+            margin: 20px auto 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-admin-accion {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-admin-accion:hover { opacity: 0.85; }
+        .btn-admin-accion.editar { background: #0d6efd; color: white; }
+        .btn-admin-accion.volver { background: #6b7280; color: white; }
+
+        /* ── Header: título + precio ── */
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .detail-header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+            flex: 1;
+        }
+
+        .detail-header .property-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #28a745;
+            white-space: nowrap;
+        }
+
+        /* ── Galería ── */
+        .detail-gallery {
+            margin-bottom: 24px;
+        }
+
+        .gallery-main-image {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background-color: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .gallery-main-image img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.4);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gallery-main-image:hover .gallery-nav { opacity: 1; }
+        .gallery-nav.left  { left: 15px; }
+        .gallery-nav.right { right: 15px; }
+        .gallery-nav:hover { background-color: rgba(0,0,0,0.7); }
+
+        .gallery-thumbnails {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+
+        .gallery-thumbnails .thumbnail {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+        }
+        .gallery-thumbnails .thumbnail:hover { opacity: 1; }
+        .gallery-thumbnails .thumbnail.active {
+            opacity: 1;
+            border-color: #004a98;
+        }
+
+        /* ── Barra de características ── */
+        .detail-features-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+        }
+        .feature-item i    { font-size: 1.8rem; color: #004a98; }
+        .feature-item span { font-size: 0.9rem; color: #333; font-weight: 500; }
+
+        /* ── Sección descripción ── */
+        .detail-description-section {
+            margin-bottom: 24px;
+        }
+        .detail-description-section h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .detail-description-section div {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        /* ── Tablas blanca y azul ── */
+        .detail-table-white,
+        .detail-table-blue {
+            margin-bottom: 24px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .detail-table-white table,
+        .detail-table-blue table { width: 100%; border-collapse: collapse; }
+        .detail-table-white td,
+        .detail-table-blue td    { padding: 13px 15px; font-size: 0.95rem; }
+
+        /* Tabla blanca */
+        .detail-table-white { background-color: #f9f9f9; border: 1px solid #eee; }
+        .detail-table-white td:first-child { font-weight: 600; color: #333; width: 35%; }
+        .detail-table-white tr:not(:last-child) td { border-bottom: 1px solid #eee; }
+
+        /* Tabla azul */
+        .detail-table-blue h3 {
+            background-color: #004a98;
+            color: white;
+            padding: 13px 15px;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .detail-table-blue table { background-color: #e6f0fa; }
+        .detail-table-blue td:first-child { font-weight: 600; color: #003366; width: 50%; }
+        .detail-table-blue td { color: #333; }
+        .detail-table-blue tr:not(:last-child) td { border-bottom: 1px solid #cce0f5; }
+
+        /* ── Pills de estado ── */
+        .estado-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .pill-publicada { background: #d1fae5; color: #065f46; }
+        .pill-pausada   { background: #fef3c7; color: #92400e; }
+        .pill-vendida   { background: #dbeafe; color: #1e40af; }
+        .pill-rentada   { background: #ede9fe; color: #5b21b6; }
+        .pill-borrador  { background: #f3f4f6; color: #6b7280; }
+
+        /* ── Placeholder sin imagen ── */
+        .gallery-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #d1d5db;
+            color: #374151;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        /* ── Error box ── */
+        .error-box {
+            margin: 40px 0;
+            background: white;
+            border-radius: 18px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+            color: #6b7280;
+        }
+
+        /* ── Dark mode ── */
+        html.dark .detail-wrapper { background: #1e293b; box-shadow: none; }
+        html.dark .detail-header h1 { color: #f1f5f9; }
+        html.dark .detail-header { border-bottom-color: #334155; }
+        html.dark .detail-features-bar { background: #0f172a; border-color: #334155; }
+        html.dark .feature-item span { color: #cbd5e1; }
+        html.dark .detail-table-white { background: #0f172a; border-color: #334155; }
+        html.dark .detail-table-white td:first-child { color: #e2e8f0; }
+        html.dark .detail-table-white td { color: #cbd5e1; }
+        html.dark .detail-table-white tr:not(:last-child) td { border-bottom-color: #334155; }
+        html.dark .detail-table-blue table { background: #1e3a5f; }
+        html.dark .detail-table-blue td { color: #cbd5e1; }
+        html.dark .detail-description-section h3 { color: #f1f5f9; }
+        html.dark .detail-description-section div { color: #94a3b8; }
+        html.dark .admin-actions-bar { color: #f1f5f9; }
+
+        @media (max-width: 680px) {
+            .detail-wrapper { padding: 20px 16px; margin: 12px; }
+            .detail-header { flex-direction: column; gap: 8px; }
+            .detail-features-bar { grid-template-columns: repeat(2, 1fr); }
+            .gallery-thumbnails { grid-template-columns: repeat(4, 1fr); }
+            .admin-actions-bar { flex-direction: column; align-items: stretch; }
+            .btn-admin-accion { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="logo"><img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara"></div>
+            <ul>
+                <li id="btnPropiedadesMenu"><i class="fas fa-building"></i> <span data-i18n="nav.propiedades">Propiedades</span></li>
+                <li id="btnUsuariosMenu" style="display:none;"><i class="fas fa-users"></i> <span data-i18n="nav.usuarios">Usuarios</span></li>
+                <li id="btnBitacoraMenu" style="display:none;"><i class="fas fa-clipboard-list"></i> <span data-i18n="nav.bitacora">Bitácora</span></li>
+                <li onclick="window.location.href='/admin-configuracion.html'"><i class="fas fa-cog"></i> <span data-i18n="nav.configuracion">Configuración</span></li>
+                <li id="btnCerrarSesion"><i class="fas fa-sign-out-alt"></i> <span data-i18n="nav.cerrarSesion">Cerrar sesión</span></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <button id="btnHamburguesa" class="btn-hamburguesa" aria-label="Menú"><i class="fas fa-bars"></i></button>
+                <div class="topbar-nav">
+                    <span onclick="window.location.href='/admin-propiedades.html'" style="cursor:pointer;" data-i18n="topbar.inventario">INVENTARIO</span>
+                    <span onclick="window.location.href='/admin-propiedades.html'" style="cursor:pointer;" data-i18n="topbar.propiedades">PROPIEDADES</span>
+                    <span id="breadcrumbNombre">DETALLES</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-user-circle fa-2x"></i>
+                    <span id="infoUsuario"></span>
+                    <i class="fas fa-cog" title="Configuración" onclick="window.location.href='/admin-configuracion.html'" style="cursor:pointer; font-size:1.2rem;"></i>
+                </div>
+            </header>
+
+            <div id="contenido"></div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const token = localStorage.getItem("token");
+        const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+        if (!token || !usuarioGuardado) {
+            window.location.href = "/admin-login.html";
+        }
+
+        window.iniciarVerificacionSesion();
+
+        document.getElementById("infoUsuario").textContent =
+            `${usuarioGuardado.nombre_completo} (${usuarioGuardado.rol})`;
+
+        if (usuarioGuardado.rol === "admin") {
+            document.getElementById("btnUsuariosMenu").style.display = "flex";
+            document.getElementById("btnBitacoraMenu").style.display = "flex";
+        }
+
+        document.getElementById("btnPropiedadesMenu").addEventListener("click", () => {
+            window.location.href = "/admin-propiedades.html";
+        });
+        document.getElementById("btnUsuariosMenu").addEventListener("click", () => {
+            window.location.href = "/admin-usuarios.html";
+        });
+        document.getElementById("btnBitacoraMenu").addEventListener("click", () => {
+            window.location.href = "/admin-bitacora.html";
+        });
+        document.getElementById("btnCerrarSesion").addEventListener("click", () => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("usuario");
+            window.location.href = "/admin-login.html";
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const propiedadId = params.get("id");
+        const fromParam   = params.get("from");
+        const esPrevia    = params.get("previa") === "1";
+
+        if (!propiedadId) {
+            window.location.href = "/admin-propiedades.html";
+        }
+
+        // ── Galería ──
+        let imagenesGaleria = [];
+        let indiceActual    = 0;
+
+        function actualizarImagenPrincipal() {
+            const mainImg = document.getElementById("gallery-main-img");
+            if (!mainImg) return;
+            mainImg.src = imagenesGaleria[indiceActual].url_archivo;
+            document.querySelectorAll(".gallery-thumbnails .thumbnail").forEach((th, i) => {
+                th.classList.toggle("active", i === indiceActual);
+            });
+        }
+
+        function val(v, fallback = "—") {
+            return (v !== null && v !== undefined && v !== "") ? v : fallback;
+        }
+
+        function fmtPrecio(v) {
+            return "$" + Number(v || 0).toLocaleString("es-MX");
+        }
+
+        function pillClass(estado) {
+            const map = {
+                publicada: "pill-publicada",
+                pausada:   "pill-pausada",
+                vendida:   "pill-vendida",
+                rentada:   "pill-rentada",
+            };
+            return map[estado] || "pill-borrador";
+        }
+
+        function renderPropiedad(d, modoPrevia = false) {
+            imagenesGaleria = d.imagenes || [];
+            indiceActual    = 0;
+
+            document.getElementById("breadcrumbNombre").textContent =
+                (d.propiedad || "DETALLES").toUpperCase();
+            document.title = `${d.propiedad || "Detalles"} - Vives Lara`;
+
+            const tieneImagenes   = imagenesGaleria.length > 0;
+            const multipleImgs    = imagenesGaleria.length > 1;
+            const estadoPill      = `<span class="estado-pill ${pillClass(d.estado_publicacion)}">${val(d.estado_publicacion, "borrador")}</span>`;
+            const vocEsc          = fromParam === "formulario" ? "✕ Cerrar vista previa" : "← Volver";
+
+            const bannerPrevia = modoPrevia ? `
+                <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:12px 16px; margin:0 auto 16px; max-width:900px; display:flex; align-items:center; gap:10px; font-size:0.95rem; color:#92400e; font-weight:600;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    ⚠️ Vista previa — cambios sin guardar
+                </div>
+            ` : "";
+
+            // Galería principal
+            const galeriaHTML = tieneImagenes ? `
+                <div class="gallery-main-image">
+                    <img id="gallery-main-img" src="${imagenesGaleria[0].url_archivo}" alt="${val(d.propiedad)}">
+                    <button class="gallery-nav left"  id="btnGalIzq"><i class="fas fa-chevron-left"></i></button>
+                    <button class="gallery-nav right" id="btnGalDer"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="gallery-thumbnails" id="gallery-thumbnails-container">
+                    ${imagenesGaleria.map((img, i) => `
+                        <img class="thumbnail${i === 0 ? " active" : ""}"
+                             src="${img.url_archivo}"
+                             data-idx="${i}"
+                             alt="Foto ${i + 1}">`).join("")}
+                </div>
+            ` : `
+                <div class="gallery-main-image">
+                    <div class="gallery-placeholder">Sin imágenes</div>
+                </div>
+            `;
+
+            const html = `
+                ${bannerPrevia}
+                <!-- Barra de acciones admin -->
+                <div class="admin-actions-bar">
+                    <button class="btn-admin-accion volver" id="btnVolver">
+                        <i class="fas fa-arrow-left"></i> ${vocEsc}
+                    </button>
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        ${estadoPill}
+                        ${modoPrevia ? "" : `
+                        <button class="btn-admin-accion editar" id="btnEditar">
+                            <i class="fas fa-pen"></i> Editar
+                        </button>`}
+                    </div>
+                </div>
+
+                <!-- Contenido con estilo PagVL -->
+                <div class="detail-wrapper">
+
+                    <!-- Encabezado: título + precio -->
+                    <div class="detail-header">
+                        <h1>${val(d.propiedad, "Sin nombre")}</h1>
+                        <span class="property-price">${fmtPrecio(d.precio)}</span>
+                    </div>
+
+                    <!-- Galería -->
+                    <div class="detail-gallery">${galeriaHTML}</div>
+
+                    <!-- Barra de características -->
+                    <div class="detail-features-bar">
+                        <span class="feature-item">
+                            <i class="fas fa-building"></i>
+                            <span>${val(d.tipo_inmueble)}</span>
+                        </span>
+                        <span class="feature-item">
+                            <i class="fas fa-tag"></i>
+                            <span>${val(d.tipo_operacion)}</span>
+                        </span>
+                        <span class="feature-item">
+                            <i class="fas fa-bed"></i>
+                            <span>${val(d.recamaras, 0)} Recámaras</span>
+                        </span>
+                        <span class="feature-item">
+                            <i class="fas fa-bath"></i>
+                            <span>${val(d.banos, 0)} Baños</span>
+                        </span>
+                        <span class="feature-item">
+                            <i class="fas fa-car"></i>
+                            <span>${val(d.estacionamiento, 0)} Estac.</span>
+                        </span>
+                        <span class="feature-item">
+                            <i class="fas fa-ruler-combined"></i>
+                            <span>${val(d.superficie_construccion_m2, "—")} m²</span>
+                        </span>
+                    </div>
+
+                    <!-- Descripción -->
+                    ${d.descripcion ? `
+                    <div class="detail-description-section">
+                        <h3>Descripción</h3>
+                        <div><p>${d.descripcion}</p></div>
+                    </div>` : ""}
+
+                    <!-- Tabla blanca: ubicación -->
+                    <div class="detail-table-white">
+                        <table>
+                            <tr><td>Dirección:</td><td>${val(d.direccion)}</td></tr>
+                            <tr><td>Zona:</td>      <td>${val(d.zona)}</td></tr>
+                        </table>
+                    </div>
+
+                    <!-- Tabla azul: detalles completos -->
+                    <div class="detail-table-blue">
+                        <h3>Detalles</h3>
+                        <table>
+                            <tr><td>Precio:</td>                  <td>${fmtPrecio(d.precio)}</td></tr>
+                            <tr><td>Tipo de inmueble:</td>        <td>${val(d.tipo_inmueble)}</td></tr>
+                            <tr><td>Tipo de operación:</td>       <td>${val(d.tipo_operacion)}</td></tr>
+                            <tr><td>Recámaras:</td>               <td>${val(d.recamaras, 0)}</td></tr>
+                            <tr><td>Baños:</td>                   <td>${val(d.banos, 0)}</td></tr>
+                            <tr><td>Estacionamiento:</td>         <td>${val(d.estacionamiento, 0)}</td></tr>
+                            <tr><td>Superficie construcción:</td> <td>${val(d.superficie_construccion_m2, "—")} m²</td></tr>
+                            <tr><td>Superficie terreno:</td>      <td>${val(d.superficie_terreno_m2, "—")} m²</td></tr>
+                            <tr><td>Amueblado:</td>               <td>${d.amueblado ? "Sí" : "No"}</td></tr>
+                            <tr><td>Condominio:</td>              <td>${d.condominio ? "Sí" : "No"}</td></tr>
+                            <tr><td>Nivel / Piso:</td>            <td>${val(d.nivel_piso)}</td></tr>
+                            <tr><td>Edificio:</td>                <td>${val(d.edificio)}</td></tr>
+                            <tr><td>Estado de conservación:</td>  <td>${val(d.estado_conservacion)}</td></tr>
+                            <tr><td>Orientación:</td>             <td>${val(d.orientacion_inmueble)}</td></tr>
+                            <tr><td>Acabados:</td>                <td>${val(d.acabados)}</td></tr>
+                            <tr><td>Amenidades:</td>              <td>${val(d.amenidades)}</td></tr>
+                            <tr><td>Coordenadas:</td>             <td>${val(d.coordenadas)}</td></tr>
+                            <tr><td>Estado publicación:</td>      <td>${val(d.estado_publicacion)}</td></tr>
+                        </table>
+                    </div>
+
+                    <!-- Mapa -->
+                    ${d.coordenadas ? `
+                    <div style="margin-bottom:24px;">
+                        <h3 style="font-size:1.3rem; font-weight:700; margin-bottom:12px; color:#333;">Ubicación</h3>
+                        <div style="width:100%; height:350px; border-radius:8px; overflow:hidden; border:1px solid #eee;">
+                            <iframe
+                                src="https://maps.google.com/maps?q=${d.coordenadas}&hl=es&z=15&output=embed"
+                                width="100%" height="100%"
+                                frameborder="0" style="border:0;"
+                                allowfullscreen="" loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                    </div>` : `
+                    <div style="margin-bottom:24px; padding:20px; background:#f9f9f9; border:1px solid #eee; border-radius:8px; text-align:center; color:#6b7280;">
+                        <i class="fas fa-map-marker-alt" style="font-size:1.5rem; margin-bottom:8px; display:block;"></i>
+                        Sin ubicación registrada
+                    </div>`}
+
+                </div>
+            `;
+
+            document.getElementById("contenido").innerHTML = html;
+
+            // Botones admin
+            const btnEditarEl = document.getElementById("btnEditar");
+            if (btnEditarEl) {
+                btnEditarEl.addEventListener("click", () => {
+                    window.location.href = `/admin-formulario.html?id=${propiedadId}`;
+                });
+            }
+            document.getElementById("btnVolver").addEventListener("click", () => {
+                if (fromParam === "formulario") {
+                    localStorage.removeItem("previa_temporal_" + propiedadId);
+                    window.close();
+                } else {
+                    window.location.href = "/admin-propiedades.html";
+                }
+            });
+
+            // Navegación galería
+            if (tieneImagenes) {
+                document.querySelectorAll(".thumbnail").forEach(th => {
+                    th.addEventListener("click", () => {
+                        indiceActual = parseInt(th.dataset.idx);
+                        actualizarImagenPrincipal();
+                    });
+                });
+
+                if (multipleImgs) {
+                    document.getElementById("btnGalIzq").addEventListener("click", () => {
+                        indiceActual = (indiceActual - 1 + imagenesGaleria.length) % imagenesGaleria.length;
+                        actualizarImagenPrincipal();
+                    });
+                    document.getElementById("btnGalDer").addEventListener("click", () => {
+                        indiceActual = (indiceActual + 1) % imagenesGaleria.length;
+                        actualizarImagenPrincipal();
+                    });
+                } else {
+                    // Una sola imagen: ocultar flechas
+                    document.getElementById("btnGalIzq").style.display = "none";
+                    document.getElementById("btnGalDer").style.display = "none";
+                }
+            }
+        }
+
+        function renderError(mensaje) {
+            document.getElementById("contenido").innerHTML = `
+                <div class="detail-wrapper">
+                    <div class="error-box">
+                        <i class="fas fa-exclamation-circle" style="font-size:48px; color:#dc3545; margin-bottom:16px;"></i>
+                        <h3 style="margin-bottom:10px; color:#111827;">${mensaje}</h3>
+                        <button class="btn-admin-accion volver" style="margin-top:16px;"
+                                onclick="window.location.href='/admin-propiedades.html'">
+                            <i class="fas fa-arrow-left"></i> Volver a propiedades
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function cargarPropiedad() {
+            try {
+                const res = await fetch(`/api/propiedades/${propiedadId}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (res.status === 404) { renderError("Propiedad no encontrada"); return; }
+                if (!res.ok) {
+                    const data = await res.json();
+                    renderError(data.error || "Error al cargar la propiedad");
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (esPrevia) {
+                    const raw = localStorage.getItem("previa_temporal_" + propiedadId);
+                    if (raw) {
+                        try {
+                            const p = JSON.parse(raw);
+                            if (p._previaTemporal) {
+                                const merged = {
+                                    ...data,
+                                    propiedad:                p.propiedad,
+                                    precio:                   p.precio ? (Number(p.precio.toString().replace(/[^0-9]/g, '')) || data.precio) : data.precio,
+                                    recamaras:                p.recamaras !== "" ? (Number(p.recamaras) || 0) : data.recamaras,
+                                    banos:                    p.banos !== "" ? (Number(p.banos) || 0) : data.banos,
+                                    estacionamiento:          p.estacionamiento !== "" ? (Number(p.estacionamiento) || 0) : data.estacionamiento,
+                                    tipo_operacion:           p.tipo_operacion,
+                                    tipo_inmueble:            p.tipo_inmueble,
+                                    direccion:                p.direccion,
+                                    zona:                     p.zona,
+                                    descripcion:              p.descripcion,
+                                    amenidades:               p.amenidades,
+                                    acabados:                 p.acabados,
+                                    estado_conservacion:      p.estado_conservacion,
+                                    orientacion_inmueble:     p.orientacion_inmueble,
+                                    superficie_construccion_m2: p.superficie_construccion_m2 !== "" ? (Number(p.superficie_construccion_m2) || null) : data.superficie_construccion_m2,
+                                    superficie_terreno_m2:    p.superficie_terreno_m2 !== "" ? (Number(p.superficie_terreno_m2) || null) : data.superficie_terreno_m2,
+                                    nivel_piso:               p.nivel_piso || null,
+                                    edificio:                 p.edificio !== "" ? (Number(p.edificio) || null) : data.edificio,
+                                    amueblado:                p.amueblado === "true",
+                                    condominio:               p.condominio === "true",
+                                    estado_publicacion:       p.estado_publicacion,
+                                    coordenadas:              p.coordenadas || null,
+                                    imagenes:                 data.imagenes
+                                };
+                                renderPropiedad(merged, true);
+                                return;
+                            }
+                        } catch {}
+                    }
+                }
+
+                renderPropiedad(data);
+            } catch {
+                renderError("Error al conectar con el servidor");
+            }
+        }
+
+        cargarPropiedad();
+    </script>
+
+    <div id="sidebar-overlay"></div>
+    <script>
+        const btnHamburguesa = document.getElementById('btnHamburguesa');
+        const sidebarEl = document.querySelector('.sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        if (btnHamburguesa) {
+            btnHamburguesa.addEventListener('click', () => {
+                sidebarEl.classList.toggle('sidebar-open');
+                overlayEl.classList.toggle('active');
+            });
+        }
+        if (overlayEl) {
+            overlayEl.addEventListener('click', () => {
+                sidebarEl.classList.remove('sidebar-open');
+                overlayEl.classList.remove('active');
+            });
+        }
+        document.querySelectorAll('.sidebar ul li').forEach(li => {
+            li.addEventListener('click', () => {
+                sidebarEl.classList.remove('sidebar-open');
+                overlayEl.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>

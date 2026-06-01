@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inmobiliaria Vives Lara - Propiedades</title>
+    
+    <link rel="stylesheet" href="/PagVL/css/main-styles.css">     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    
+    </head>
+
+<body>
+
+    <header class="header-fijo">
+        <div class="header-container">
+            
+            <div class="header-left-group">
+                <a href="/PagVL/index.html" class="header-logo">
+                    <img src="/PagVL/images/LOGO-nofondo-nonombre.png" alt="Inmobiliaria Vives Lara">
+                </a>
+                <div class="header-socials">
+                    <a href="https://www.facebook.com/profile.php?id=100086406399122" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                    <a href="https://www.instagram.com/viveslara/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            
+            <div class="header-info">
+                <nav class="header-nav">
+                    <ul>
+                        <li><a href="/PagVL/index.html">Inicio</a></li>
+                        <li><a href="/PagVL/propiedades.html" class="active">Propiedades</a></li>
+                        <li><a href="/PagVL/index.html#contacto">Contacto</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="properties-page-layout">
+            
+            <aside class="sidebar-filters">
+                <h3>Tipos de Propiedad</h3>
+                <ul class="filter-list" id="sidebar-filter-list">
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tipo" value="casa">
+                            <span class="custom-checkbox"></span> Casa
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tipo" value="departamento">
+                            <span class="custom-checkbox"></span> Departamento
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tipo" value="terreno">
+                            <span class="custom-checkbox"></span> Terreno
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tipo" value="local">
+                            <span class="custom-checkbox"></span> Local Comercial
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tipo" value="oficina">
+                            <span class="custom-checkbox"></span> Oficina
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tipo" value="otro">
+                            <span class="custom-checkbox"></span> Otro
+                        </label>
+                    </li>
+                </ul>
+            </aside>
+
+            <div class="main-content-filters">
+                
+                <div class="top-filter-bar">
+
+                    <div class="search-dropdown-container">
+                        <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-operacion-page">
+                            Operación (Ambas) <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <ul class="dropdown-menu" id="dropdown-operacion-page">
+                            <li><a href="#" data-value="ambas">Ambas (Venta y Renta)</a></li>
+                            <li><a href="#" data-value="venta">Venta</a></li>
+                            <li><a href="#" data-value="renta">Renta</a></li>
+                        </ul>
+                    </div>
+                    
+                    
+                    <div class="search-dropdown-container">
+                        <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-ubicacion-page">
+                            Ubicación <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <ul class="dropdown-menu" id="dropdown-ubicacion-page">
+                            <li><a href="#" data-value="todas">Ubicación</a></li> <li><a href="#" data-value="alvarado">Alvarado</a></li>
+                            <li><a href="#" data-value="boca-del-rio">Boca del Río</a></li>
+                            <li><a href="#" data-value="merida">Mérida</a></li>
+                            <li><a href="#" data-value="veracruz">Veracruz</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="search-dropdown-container">
+                        <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-recamaras-page">
+                            Cuartos <i class="fas fa-chevron-down"></i> </button>
+                        <ul class="dropdown-menu" id="dropdown-recamaras-page">
+                            <li><a href="#" data-value="cualquiera">Cuartos</a></li> <li><a href="#" data-value="1">1</a></li>
+                            <li><a href="#" data-value="2">2</a></li>
+                            <li><a href="#" data-value="3">3</a></li>
+                            <li><a href="#" data-value="4">4</a></li>
+                            <li><a href="#" data-value="5+">5+</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="search-dropdown-container">
+                        <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-precio-page">
+                            Máx. Precio <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu slider-dropdown" id="dropdown-precio-page">
+                            <label for="price-slider-page">Precio: <span id="price-value-page">$5,000,000</span></label>
+                            <input type="range" id="price-slider-page" min="0" max="15000000" step="250000" value="15000000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="properties-grid" id="properties-grid-page-container">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="/PagVL/images/LOGO-nofondo-nombre.png" alt="Inmobiliaria Vives Lara">
+                <a href="/PagVL/privacidad.html">Aviso de privacidad</a>
+            </div>
+            <div class="footer-contacto">
+                <a href="/PagVL/index.html#contacto">Contáctanos</a>
+            </div>
+            <div class="footer-copy">
+                <p>© Inmobiliaria Vives Lara - derechos reservados</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/PagVL/js/main.js"></script>
+</body>
+</html>
