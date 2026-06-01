@@ -29,6 +29,10 @@ async function registrarBitacora({ usuario_id, usuario_nombre, accion, modulo, d
 app.use(cors({
   origin: ['http://localhost:3000', 'https://viveslarabienesraices.com', 'https://mx.viveslarabienesraices.com']
 }));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'PagVL', 'PagVL', 'index.html'));
+});
 app.use(express.json());
 app.get('/PagVL/index.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/index.html')));
 app.get('/PagVL/propiedades.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/propiedades.html')));
