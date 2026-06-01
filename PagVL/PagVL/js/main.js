@@ -1,6 +1,7 @@
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:3000'
-  : 'https://viveslarabienesraices.com';
+  : 'https://mx.viveslarabienesraices.com',
+    'https://viveslarabienesraices.com';
 
 // =============================================
 
