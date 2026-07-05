@@ -447,6 +447,38 @@ app.get("/api/public/propiedades", async (req, res) => {
   }
 });
 
+app.get("/api/public/propiedades/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const propiedad = await pool.query(
+      "SELECT * FROM propiedades WHERE id = $1 AND estado_publicacion = 'publicada'",
+      [id]
+    );
+
+    if (propiedad.rows.length === 0) {
+      return res.status(404).json({ error: "Propiedad no encontrada" });
+    }
+
+    const imagenes = await pool.query(
+      `SELECT *
+       FROM propiedad_multimedia
+       WHERE propiedad_id = $1
+       ORDER BY principal DESC, orden ASC`,
+      [id]
+    );
+
+    res.json({
+      ...propiedad.rows[0],
+      imagenes: imagenes.rows
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error del servidor" });
+  }
+});
+
 app.get("/api/preferencias", verificarToken, async (req, res) => {
   try {
     const resultado = await pool.query("SELECT modo_oscuro, idioma FROM preferencias_usuario WHERE usuario_id = $1", [req.usuario.id]);
