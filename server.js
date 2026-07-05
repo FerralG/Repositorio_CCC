@@ -57,6 +57,19 @@ app.get("/propiedad-detalle.html", (req, res) => res.sendFile(path.join(__dirnam
 // 4. Ruta para el Panel de Administración de la Inmobiliaria
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin-login.html')));
 
+// Panel de administración
+app.get('/admin', (req, res) =>
+  res.sendFile(path.join(__dirname, 'public/admin-login.html'))
+);
+
+app.get('/admin-usuarios.html', (req, res) =>
+  res.sendFile(path.join(__dirname, 'public/admin-usuarios.html'))
+);
+
+app.get('/admin-propiedades.html', (req, res) =>
+  res.sendFile(path.join(__dirname, 'public/admin-propiedades.html'))
+);
+
 // 5. RUTA RAÍZ PRINCIPAL: Muestra el index de la inmobiliaria por defecto
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'PagVL', 'PagVL', 'index.html'));
