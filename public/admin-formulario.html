@@ -562,9 +562,10 @@
                 if (d.imagenes && d.imagenes.length > 0) {
                     renderImagenesExistentes(d.imagenes);
                 }
-            } catch {
-                mostrarMensaje("error", "Error al conectar con el servidor");
-            }
+            } catch (error) {
+               console.error("ERROR COMPLETO:", error);
+               mostrarMensaje("error", error.message);
+              }
         }
 
         if (modoEdicion) {
