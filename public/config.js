@@ -3,7 +3,7 @@
    Preferencias, modo oscuro e internacionalización
    ============================================= */
 
-window.API_URL = "http://localhost:5000"; // <-- Reemplaza por la IP/Puerto o subdominio real de tu API
+window.API_URL = window.location.origin;; // <-- Reemplaza por la IP/Puerto o subdominio real de tu API
 
 const TRADUCCIONES = {
   es: {
