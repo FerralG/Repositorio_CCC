@@ -528,6 +528,132 @@ app.post("/api/propiedades/:id/imagenes", verificarToken, permitirRoles("admin",
   }
 });
 
+app.delete("/api/propiedades/:propiedadId/imagenes/:imagenId",
+verificarToken,
+permitirRoles("admin", "editor"),
+async (req, res) => {
+    try {
+
+        const { propiedadId, imagenId } = req.params;
+
+        const resultado = await pool.query(
+            `SELECT * FROM propiedad_multimedia
+             WHERE id = $1
+             AND propiedad_id = $2`,
+            [imagenId, propiedadId]
+        );
+
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({
+                error: "Imagen no encontrada"
+            });
+        }
+
+        const imagen = resultado.rows[0];
+
+        if (imagen.url_archivo) {
+
+            const rutaArchivo = path.join(
+                __dirname,
+                "public",
+                imagen.url_archivo.replace("/uploads/", "uploads/")
+            );
+
+            if (fs.existsSync(rutaArchivo)) {
+                fs.unlinkSync(rutaArchivo);
+            }
+        }
+
+        await pool.query(
+            `DELETE FROM propiedad_multimedia
+             WHERE id = $1`,
+            [imagenId]
+        );
+
+        res.json({
+            mensaje: "Imagen eliminada correctamente"
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            error: "Error al eliminar la imagen"
+        });
+
+    }
+});
+
+app.patch("/api/propiedades/:propiedadId/imagenes/orden",
+verificarToken,
+permitirRoles("admin","editor"),
+async (req,res)=>{
+
+    const client = await pool.connect();
+
+    try{
+
+        const { propiedadId } = req.params;
+
+        const { imagenes } = req.body;
+
+        if(!Array.isArray(imagenes)){
+            return res.status(400).json({
+                error:"Formato inválido"
+            });
+        }
+
+        await client.query("BEGIN");
+
+        for(const img of imagenes){
+
+            await client.query(
+
+                `UPDATE propiedad_multimedia
+                 SET
+                    orden = $1,
+                    principal = $2
+                 WHERE
+                    id = $3
+                 AND
+                    propiedad_id = $4`,
+
+                [
+                    img.orden,
+                    img.principal,
+                    img.id,
+                    propiedadId
+                ]
+
+            );
+
+        }
+
+        await client.query("COMMIT");
+
+        res.json({
+            mensaje:"Orden actualizado correctamente"
+        });
+
+    }catch(error){
+
+        await client.query("ROLLBACK");
+
+        console.error(error);
+
+        res.status(500).json({
+            error:"Error al actualizar el orden"
+        });
+
+    }finally{
+
+        client.release();
+
+    }
+
+});
+
 app.put("/api/propiedades/:id", verificarToken, permitirRoles("admin", "editor"), async (req, res) => {
   try {
     const { id } = req.params;
