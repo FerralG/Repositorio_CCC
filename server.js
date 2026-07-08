@@ -393,17 +393,121 @@ app.get("/api/propiedades/:id", verificarToken, permitirRoles("admin", "editor")
 
 app.post("/api/propiedades", verificarToken, permitirRoles("admin", "editor"), async (req, res) => {
   try {
-    const { propiedad, tipo_operacion, tipo_inmueble, precio, direccion, coordenadas } = req.body;
-    if (!propiedad || !tipo_operacion || !tipo_inmueble || precio == null || !direccion) return res.status(400).json({ error: "Faltan campos obligatorios" });
+    const {
+      propiedad,
+      nivel_piso,
+      tipo_operacion,
+      tipo_inmueble,
+      precio,
+      recamaras,
+      banos,
+      amueblado,
+      direccion,
+      zona,
+      estacionamiento,
+      condominio,
+      edificio,
+      estado_conservacion,
+      orientacion_inmueble,
+      superficie_construccion_m2,
+      superficie_terreno_m2,
+      acabados,
+      descripcion,
+      amenidades,
+      coordenadas,
+      estado_publicacion
+    } = req.body;
+
+    if (
+      !propiedad ||
+      !tipo_operacion ||
+      !tipo_inmueble ||
+      precio == null ||
+      !direccion
+    ) {
+      return res.status(400).json({
+        error: "Faltan campos obligatorios"
+      });
+    }
+
     const resultado = await pool.query(
-      `INSERT INTO propiedades (propiedad, tipo_operacion, tipo_inmueble, precio, direccion, coordenadas, estado_publicacion) VALUES ($1, $2, $3, $4, $5, $6, 'borrador') RETURNING *`,
-      [propiedad, tipo_operacion, tipo_inmueble, precio, direccion, coordenadas || null]
+      `
+      INSERT INTO propiedades (
+        propiedad,
+        nivel_piso,
+        tipo_operacion,
+        tipo_inmueble,
+        precio,
+        recamaras,
+        banos,
+        amueblado,
+        direccion,
+        zona,
+        estacionamiento,
+        condominio,
+        edificio,
+        estado_conservacion,
+        orientacion_inmueble,
+        superficie_construccion_m2,
+        superficie_terreno_m2,
+        acabados,
+        descripcion,
+        amenidades,
+        coordenadas,
+        estado_publicacion
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+        $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
+        $21,$22
+      )
+      RETURNING *
+      `,
+      [
+        propiedad,
+        nivel_piso || null,
+        tipo_operacion,
+        tipo_inmueble,
+        precio,
+        recamaras ?? null,
+        banos ?? null,
+        amueblado ?? false,
+        direccion,
+        zona || null,
+        estacionamiento ?? null,
+        condominio ?? false,
+        edificio ?? null,
+        estado_conservacion || null,
+        orientacion_inmueble || null,
+        superficie_construccion_m2 ?? null,
+        superficie_terreno_m2 ?? null,
+        acabados || null,
+        descripcion || null,
+        amenidades || null,
+        coordenadas || null,
+        estado_publicacion || "borrador"
+      ]
     );
-    registrarBitacora({ usuario_id: req.usuario.id, usuario_nombre: req.usuario.usuario, accion: "CREAR", modulo: "PROPIEDADES", descripcion: resultado.rows[0].propiedad, ip: req.ip });
-    res.status(201).json({ mensaje: "Creada", propiedad: resultado.rows[0] });
+
+    registrarBitacora({
+      usuario_id: req.usuario.id,
+      usuario_nombre: req.usuario.usuario,
+      accion: "CREAR",
+      modulo: "PROPIEDADES",
+      descripcion: resultado.rows[0].propiedad,
+      ip: req.ip
+    });
+
+    res.status(201).json({
+      mensaje: "Propiedad creada correctamente",
+      propiedad: resultado.rows[0]
+    });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error" });
+    res.status(500).json({
+      error: "Error al crear la propiedad"
+    });
   }
 });
 
@@ -421,6 +525,120 @@ app.post("/api/propiedades/:id/imagenes", verificarToken, permitirRoles("admin",
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error" });
+  }
+});
+
+app.put("/api/propiedades/:id", verificarToken, permitirRoles("admin", "editor"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      propiedad,
+      nivel_piso,
+      tipo_operacion,
+      tipo_inmueble,
+      precio,
+      recamaras,
+      banos,
+      amueblado,
+      direccion,
+      zona,
+      estacionamiento,
+      condominio,
+      edificio,
+      estado_conservacion,
+      orientacion_inmueble,
+      superficie_construccion_m2,
+      superficie_terreno_m2,
+      acabados,
+      descripcion,
+      amenidades,
+      coordenadas,
+      estado_publicacion
+    } = req.body;
+
+    const resultado = await pool.query(
+      `
+      UPDATE propiedades
+      SET
+        propiedad = $1,
+        nivel_piso = $2,
+        tipo_operacion = $3,
+        tipo_inmueble = $4,
+        precio = $5,
+        recamaras = $6,
+        banos = $7,
+        amueblado = $8,
+        direccion = $9,
+        zona = $10,
+        estacionamiento = $11,
+        condominio = $12,
+        edificio = $13,
+        estado_conservacion = $14,
+        orientacion_inmueble = $15,
+        superficie_construccion_m2 = $16,
+        superficie_terreno_m2 = $17,
+        acabados = $18,
+        descripcion = $19,
+        amenidades = $20,
+        coordenadas = $21,
+        estado_publicacion = $22,
+        actualizado_en = NOW()
+      WHERE id = $23
+      RETURNING *
+      `,
+      [
+        propiedad,
+        nivel_piso,
+        tipo_operacion,
+        tipo_inmueble,
+        precio,
+        recamaras,
+        banos,
+        amueblado,
+        direccion,
+        zona,
+        estacionamiento,
+        condominio,
+        edificio,
+        estado_conservacion,
+        orientacion_inmueble,
+        superficie_construccion_m2,
+        superficie_terreno_m2,
+        acabados,
+        descripcion,
+        amenidades,
+        coordenadas,
+        estado_publicacion,
+        id
+      ]
+    );
+
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({
+        error: "Propiedad no encontrada"
+      });
+    }
+
+    registrarBitacora({
+      usuario_id: req.usuario.id,
+      usuario_nombre: req.usuario.usuario,
+      accion: "EDITAR",
+      modulo: "PROPIEDADES",
+      descripcion: resultado.rows[0].propiedad,
+      ip: req.ip
+    });
+
+    res.json({
+      mensaje: "Propiedad actualizada correctamente",
+      propiedad: resultado.rows[0]
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Error al actualizar la propiedad"
+    });
   }
 });
 
