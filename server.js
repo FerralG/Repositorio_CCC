@@ -53,7 +53,10 @@ app.get('/PagVL/index.html', (req, res) => res.sendFile(path.join(__dirname, 'Pa
 app.get('/PagVL/propiedades.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/propiedades.html')));
 app.get('/PagVL/propiedad-detalle.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/propiedad-detalle.html')));
 app.get('/PagVL/privacidad.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/privacidad.html')));
-app.get("/propiedad-detalle.html", (req, res) => res.sendFile(path.join(__dirname, "propiedad-detalle.html")));
+app.get("/propiedad-detalle.html", (req, res) => {
+  const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+  res.redirect(301, "/PagVL/propiedad-detalle.html" + query);
+});
 
 // 4. Ruta para el Panel de Administración de la Inmobiliaria
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin-login.html')));
