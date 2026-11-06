@@ -632,6 +632,76 @@ a.property-card {
     border-bottom: 1px solid #fff;
 }
 
+/* ---------- Proceso: pasos numerados ---------- */
+.proceso {
+    background-color: var(--crema);
+    padding: 90px 5%;
+    text-align: center;
+}
+
+.proceso-pasos {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    max-width: 960px;
+    margin: 46px auto 0;
+    position: relative;
+}
+
+/* línea que une los círculos */
+.proceso-pasos::before {
+    content: '';
+    position: absolute;
+    top: 29px;
+    left: 12.5%;
+    right: 12.5%;
+    height: 1px;
+    background: var(--linea);
+}
+
+.paso {
+    position: relative;
+    padding: 0 8px;
+}
+
+.paso-numero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-variant-numeric: lining-nums;
+    box-shadow: 0 0 0 6px var(--crema), 0 8px 20px rgba(11, 37, 69, 0.22);
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.paso:hover .paso-numero {
+    transform: translateY(-4px);
+    background: var(--navy-2);
+}
+
+.paso h3 {
+    font-family: var(--serif);
+    font-size: 1.55rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+}
+
+.paso p {
+    color: var(--gris);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
 /* ---------- Detalles finos ---------- */
 ::selection {
     background: #cfd6e0;
@@ -725,6 +795,7 @@ input:focus-visible {
 
     .featured-properties,
     .why-choose-us,
+    .proceso,
     .cta-section,
     .locations-section,
     .contact-section {
@@ -753,6 +824,16 @@ input:focus-visible {
 
     .lang-switch {
         padding-left: 10px;
+    }
+
+    .proceso-pasos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 34px 16px;
+        margin-top: 34px;
+    }
+
+    .proceso-pasos::before {
+        display: none;
     }
 
     .properties-page-layout {

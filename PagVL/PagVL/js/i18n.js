@@ -76,14 +76,18 @@
             'zonas.verMas': 'VER MÁS',
 
             // --- Por qué elegirnos ---
-            'nosotros.titulo': 'Ayudamos a las personas a comprar, alquilar y vender propiedades',
-            'nosotros.subtitulo': 'La compra de una propiedad puede ser un proceso estresante, pero eliminamos las conjeturas al encontrar un agente de bienes raíces. Le ayudaremos a encontrar la combinación perfecta para comprar su casa ideal.',
-            'nosotros.agentes.titulo': 'Agentes calificados',
-            'nosotros.agentes.texto': 'Nuestros agentes inmobiliarios son expertos locales que brindan asesoramiento personalizado de alta calidad gracias a su conocimiento detallado del mercado.',
-            'nosotros.servicio.titulo': 'Excelente servicio',
-            'nosotros.servicio.texto': 'Nuestra agencia brinda un servicio excepcional a precios competitivos, con profesionales experimentados que ofrecen asesoramiento experto y atención meticulosa al detalle.',
-            'nosotros.atencion.titulo': 'Atención al cliente',
-            'nosotros.atencion.texto': 'Ofrecemos atención al cliente excepcional, soporte completo y consejos valiosos antes, durante y después de la compraventa para construir relaciones duraderas.',
+
+            // --- Proceso (Así lo acompañamos) ---
+            'proceso.titulo': 'Así lo acompañamos',
+            'proceso.subtitulo': 'Un proceso claro, de la primera llamada a la entrega de llaves.',
+            'proceso.p1.titulo': 'Asesoría',
+            'proceso.p1.texto': 'Conocemos lo que busca',
+            'proceso.p2.titulo': 'Visitas',
+            'proceso.p2.texto': 'Opciones a su medida',
+            'proceso.p3.titulo': 'Negociación',
+            'proceso.p3.texto': 'Cuidamos su inversión',
+            'proceso.p4.titulo': 'Cierre',
+            'proceso.p4.texto': 'Trámites y entrega',
 
             // --- Llamado a la acción ---
             'cta.titulo': '¿Quieres comprar o vender una casa?',
@@ -235,14 +239,17 @@
             'zonas.otros': '{n} properties',
             'zonas.verMas': 'VIEW MORE',
 
-            'nosotros.titulo': 'We help people buy, rent and sell properties',
-            'nosotros.subtitulo': 'Buying a property can be a stressful process, but we take the guesswork out by connecting you with a real estate agent. We will help you find the perfect match to buy your ideal home.',
-            'nosotros.agentes.titulo': 'Qualified agents',
-            'nosotros.agentes.texto': 'Our real estate agents are local experts who provide high-quality, personalized advice thanks to their detailed knowledge of the market.',
-            'nosotros.servicio.titulo': 'Excellent service',
-            'nosotros.servicio.texto': 'Our agency delivers exceptional service at competitive prices, with experienced professionals who offer expert advice and meticulous attention to detail.',
-            'nosotros.atencion.titulo': 'Customer care',
-            'nosotros.atencion.texto': 'We offer exceptional customer care, complete support and valuable advice before, during and after the transaction to build lasting relationships.',
+
+            'proceso.titulo': 'How we support you',
+            'proceso.subtitulo': 'A clear process, from the first call to the handover of the keys.',
+            'proceso.p1.titulo': 'Advisory',
+            'proceso.p1.texto': 'We learn what you are looking for',
+            'proceso.p2.titulo': 'Viewings',
+            'proceso.p2.texto': 'Options tailored to you',
+            'proceso.p3.titulo': 'Negotiation',
+            'proceso.p3.texto': 'We protect your investment',
+            'proceso.p4.titulo': 'Closing',
+            'proceso.p4.texto': 'Paperwork and handover',
 
             'cta.titulo': 'Do you want to buy or sell a home?',
             'cta.texto': 'Contact us today and our team of experienced agents will guide you through every step of the buying and selling process, from inspections to negotiations, with a dedicated agent who understands your needs.',
