@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inmobiliaria Vives Lara - Inicio</title>
+    <title data-i18n="meta.inicio">Inmobiliaria Vives Lara - Inicio</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/PagVL/css/main-styles.css">     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"><link rel="stylesheet" href="/PagVL/css/tema-elegante.css?v=6">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/PagVL/css/main-styles.css">     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"><link rel="stylesheet" href="/PagVL/css/tema-elegante.css?v=7">
 
     <link rel="shortcut icon" href="/PagVL/images/LOGO-nofondo-nonombre.png" type="image/png">
     
@@ -30,11 +30,16 @@
             <div class="header-info">
                 <nav class="header-nav">
                     <ul>
-                        <li><a href="/" class="active">Inicio</a></li>
-                        <li><a href="/propiedades">Propiedades</a></li>
-                        <li><a href="#contacto">Contacto</a></li>
+                        <li><a href="/" class="active" data-i18n="nav.inicio">Inicio</a></li>
+                        <li><a href="/propiedades" data-i18n="nav.propiedades">Propiedades</a></li>
+                        <li><a href="#contacto" data-i18n="nav.contacto">Contacto</a></li>
                     </ul>
                 </nav>
+                <div class="lang-switch" role="group" aria-label="Idioma" data-i18n-aria="idioma.etiqueta">
+                    <button type="button" data-lang="es" aria-pressed="true">ES</button>
+                    <span aria-hidden="true">|</span>
+                    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+                </div>
             </div>
         </div>
     </header>
@@ -42,38 +47,38 @@
     
     <section class="hero-section">
         <div class="hero-content">
-            <h1 class="hero-title">Encuentre la casa de sus sueños en un solo click</h1>
-            <p class="hero-subtitle">Boca del Río · Riviera Veracruzana · Veracruz · Mérida</p>
+            <h1 class="hero-title" data-i18n="hero.titulo">Encuentre la casa de sus sueños en un solo click</h1>
+            <p class="hero-subtitle" data-i18n="hero.subtitulo">Boca del Río · Riviera Veracruzana · Veracruz · Mérida</p>
             
             <form class="hero-search-form" id="hero-search-form">
                 
                 <div class="search-dropdown-container">
-                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-operacion">
+                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-operacion" data-i18n="buscador.operacion">
                         Operación (Ambas) <i class="fas fa-chevron-down"></i>
                     </button>
                     <ul class="dropdown-menu" id="dropdown-operacion">
-                        <li><a href="#" data-value="ambas">Ambas (Venta y Renta)</a></li>
-                        <li><a href="#" data-value="venta">Venta</a></li>
-                        <li><a href="#" data-value="renta">Renta</a></li>
+                        <li><a href="#" data-value="ambas" data-i18n="buscador.ambas">Ambas (Venta y Renta)</a></li>
+                        <li><a href="#" data-value="venta" data-i18n="buscador.venta">Venta</a></li>
+                        <li><a href="#" data-value="renta" data-i18n="buscador.renta">Renta</a></li>
                     </ul>
                 </div>
                 
                 <div class="search-dropdown-container">
-                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-tipo">
+                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-tipo" data-i18n="buscador.tipo">
                         Tipo de propiedad <i class="fas fa-chevron-down"></i>
                     </button>
                     <ul class="dropdown-menu" id="dropdown-tipo">
-                        <li><a href="#" data-value="casa">Casa</a></li>
-                        <li><a href="#" data-value="departamento">Departamento</a></li>
-                        <li><a href="#" data-value="terreno">Terreno</a></li>
-                        <li><a href="#" data-value="local">Local Comercial</a></li>
-                        <li><a href="#" data-value="oficina">Oficina</a></li>
-                        <li><a href="#" data-value="otro">Otro</a></li>
+                        <li><a href="#" data-value="casa" data-i18n="tipo.casa">Casa</a></li>
+                        <li><a href="#" data-value="departamento" data-i18n="tipo.departamento">Departamento</a></li>
+                        <li><a href="#" data-value="terreno" data-i18n="tipo.terreno">Terreno</a></li>
+                        <li><a href="#" data-value="local" data-i18n="tipo.local">Local Comercial</a></li>
+                        <li><a href="#" data-value="oficina" data-i18n="tipo.oficina">Oficina</a></li>
+                        <li><a href="#" data-value="otro" data-i18n="tipo.otro">Otro</a></li>
                     </ul>
                 </div>
                 
                 <div class="search-dropdown-container">
-                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-ubicacion">
+                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-ubicacion" data-i18n="buscador.ubicacion">
                         Ubicación <i class="fas fa-chevron-down"></i>
                     </button>
                     <ul class="dropdown-menu" id="dropdown-ubicacion">
@@ -85,7 +90,7 @@
                 </div>
                 
                 <div class="search-dropdown-container">
-                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-recamaras">
+                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-recamaras" data-i18n="buscador.recamaras">
                         Recámaras <i class="fas fa-chevron-down"></i>
                     </button>
                     <ul class="dropdown-menu" id="dropdown-recamaras">
@@ -94,32 +99,32 @@
                         <li><a href="#" data-value="3">3</a></li>
                         <li><a href="#" data-value="4">4</a></li>
                         <li><a href="#" data-value="5+">5+</a></li>
-                        <li><a href="#" data-value="cualquiera">Cualquiera</a></li>
+                        <li><a href="#" data-value="cualquiera" data-i18n="buscador.cualquiera">Cualquiera</a></li>
                     </ul>
                 </div>
 
                 <div class="search-dropdown-container">
-                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-precio">
+                    <button type="button" class="dropdown-toggle" data-dropdown-id="dropdown-precio" data-i18n="buscador.maxPrecio">
                         Máx. Precio <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="dropdown-menu slider-dropdown" id="dropdown-precio">
-                        <label for="price-slider">Precio: <span id="price-value">$15,000,000+</span></label>
+                        <label for="price-slider" data-i18n="buscador.precio">Precio: <span id="price-value">$15,000,000+</span></label>
                         <input type="range" id="price-slider" min="0" max="15000000" step="250000" value="15000000">
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-buscar">Buscar</button>
+                <button type="submit" class="btn btn-buscar" data-i18n="buscador.buscar">Buscar</button>
             </form>
         </div>
     </section>
     <section class="featured-properties" id="propiedades">
             <div class="container">
-                <h2 class="section-title">Nuestras propiedades nuevas y destacadas</h2>
+                <h2 class="section-title" data-i18n="destacadas.titulo">Nuestras propiedades nuevas y destacadas</h2>
                 
                 <div class="filter-group" id="filter-operation">
-                    <button class="filter-btn active" data-filter="todo">TODO</button>
-                    <button class="filter-btn" data-filter="venta">VENTA</button>
-                    <button class="filter-btn" data-filter="renta">RENTA</button>
+                    <button class="filter-btn active" data-filter="todo" data-i18n="destacadas.todo">TODO</button>
+                    <button class="filter-btn" data-filter="venta" data-i18n="destacadas.venta">VENTA</button>
+                    <button class="filter-btn" data-filter="renta" data-i18n="destacadas.renta">RENTA</button>
                 </div>
                 
                 <div class="filter-group-location" id="filter-location">
@@ -138,44 +143,44 @@
 
         <section class="locations-section">
             <div class="container">
-                <h4 class="section-eyebrow">EXPLORAR ZONAS</h4>
-                <h2 class="section-title">Descubra más de nuestro mercado inmobiliario</h2>
-                <p class="section-subtitle">Encuentre el vecindario de sus sueños y explórelo con su asesor inmobiliario. Estamos aquí para ayudarle a encontrar el hogar perfecto para usted.</p>
+                <h4 class="section-eyebrow" data-i18n="zonas.eyebrow">EXPLORAR ZONAS</h4>
+                <h2 class="section-title" data-i18n="zonas.titulo">Descubra más de nuestro mercado inmobiliario</h2>
+                <p class="section-subtitle" data-i18n="zonas.subtitulo">Encuentre el vecindario de sus sueños y explórelo con su asesor inmobiliario. Estamos aquí para ayudarle a encontrar el hogar perfecto para usted.</p>
 
                 <div class="locations-grid">
                     <a href="/propiedades?ubicacion=alvarado" class="location-card">
                         <img src="/PagVL/images/alvarado.jpg" alt="Alvarado" class="location-card-bg">
                         <div class="location-card-content">
-                            <span class="property-count" data-location="alvarado">0 Properties</span>
+                            <span class="property-count" data-location="alvarado">0 propiedades</span>
                             <h3>Alvarado</h3>
-                            <span class="more-details">MORE DETAILS <i class="fas fa-play"></i></span>
+                            <span class="more-details" data-i18n="zonas.verMas">MORE DETAILS <i class="fas fa-play"></i></span>
                         </div>
                     </a>
                     
                     <a href="/propiedades?ubicacion=boca-del-rio" class="location-card">
                         <img src="/PagVL/images/boca.jpg" alt="Boca del Río" class="location-card-bg">
                         <div class="location-card-content">
-                            <span class="property-count" data-location="boca del rio">0 Properties</span>
+                            <span class="property-count" data-location="boca del rio">0 propiedades</span>
                             <h3>Boca del Río</h3>
-                            <span class="more-details">MORE DETAILS <i class="fas fa-play"></i></span>
+                            <span class="more-details" data-i18n="zonas.verMas">MORE DETAILS <i class="fas fa-play"></i></span>
                         </div>
                     </a>
 
                     <a href="/propiedades?ubicacion=veracruz" class="location-card">
                         <img src="/PagVL/images/veracruz.jpg" alt="Veracruz" class="location-card-bg">
                         <div class="location-card-content">
-                            <span class="property-count" data-location="veracruz">0 Properties</span>
+                            <span class="property-count" data-location="veracruz">0 propiedades</span>
                             <h3>Veracruz</h3>
-                            <span class="more-details">MORE DETAILS <i class="fas fa-play"></i></span>
+                            <span class="more-details" data-i18n="zonas.verMas">MORE DETAILS <i class="fas fa-play"></i></span>
                         </div>
                     </a>
 
                     <a href="/propiedades?ubicacion=merida" class="location-card">
                         <img src="/PagVL/images/merida.jpg" alt="Mérida" class="location-card-bg">
                         <div class="location-card-content">
-                            <span class="property-count" data-location="merida">0 Properties</span>
+                            <span class="property-count" data-location="merida">0 propiedades</span>
                             <h3>Mérida</h3>
-                            <span class="more-details">MORE DETAILS <i class="fas fa-play"></i></span>
+                            <span class="more-details" data-i18n="zonas.verMas">MORE DETAILS <i class="fas fa-play"></i></span>
                         </div>
                     </a>
                 </div>
@@ -184,24 +189,24 @@
 
         <section class="why-choose-us">
             <div class="container">
-                <h2 class="section-title">Ayudamos a las personas a comprar, alquilar y vender propiedades</h2>
-                <p class="section-subtitle">La compra de una propiedad puede ser un proceso estresante, pero eliminamos las conjeturas al encontrar un agente de bienes raíces. Le ayudaremos a encontrar la combinación perfecta para comprar su casa ideal.</p>
+                <h2 class="section-title" data-i18n="nosotros.titulo">Ayudamos a las personas a comprar, alquilar y vender propiedades</h2>
+                <p class="section-subtitle" data-i18n="nosotros.subtitulo">La compra de una propiedad puede ser un proceso estresante, pero eliminamos las conjeturas al encontrar un agente de bienes raíces. Le ayudaremos a encontrar la combinación perfecta para comprar su casa ideal.</p>
                 
                 <div class="features-grid">
                     <div class="feature-item">
-                        <img src="/PagVL/images/landingagentes.png" alt="Agentes calificados">
-                        <h3>Agentes calificados</h3>
-                        <p>Nuestros agentes inmobiliarios son expertos locales que brindan asesoramiento personalizado de alta calidad gracias a su conocimiento detallado del mercado.</p>
+                        <img src="/PagVL/images/landingagentes.png" alt="Agentes calificados" data-i18n-alt="nosotros.agentes.titulo">
+                        <h3 data-i18n="nosotros.agentes.titulo">Agentes calificados</h3>
+                        <p data-i18n="nosotros.agentes.texto">Nuestros agentes inmobiliarios son expertos locales que brindan asesoramiento personalizado de alta calidad gracias a su conocimiento detallado del mercado.</p>
                     </div>
                     <div class="feature-item">
-                        <img src="/PagVL/images/landingservicio.png" alt="Excelente servicio">
-                        <h3>Excelente servicio</h3>
-                        <p>Nuestra agencia brinda un servicio excepcional a precios competitivos, con profesionales experimentados que ofrecen asesoramiento experto y atención meticulosa al detalle.</p>
+                        <img src="/PagVL/images/landingservicio.png" alt="Excelente servicio" data-i18n-alt="nosotros.servicio.titulo">
+                        <h3 data-i18n="nosotros.servicio.titulo">Excelente servicio</h3>
+                        <p data-i18n="nosotros.servicio.texto">Nuestra agencia brinda un servicio excepcional a precios competitivos, con profesionales experimentados que ofrecen asesoramiento experto y atención meticulosa al detalle.</p>
                     </div>
                     <div class="feature-item">
-                        <img src="/PagVL/images/landingatencion.png" alt="Atención al cliente">
-                        <h3>Atención al cliente</h3>
-                        <p>Ofrecemos atención al cliente excepcional, soporte completo y consejos valiosos antes, durante y después de la compraventa para construir relaciones duraderas.</p>
+                        <img src="/PagVL/images/landingatencion.png" alt="Atención al cliente" data-i18n-alt="nosotros.atencion.titulo">
+                        <h3 data-i18n="nosotros.atencion.titulo">Atención al cliente</h3>
+                        <p data-i18n="nosotros.atencion.texto">Ofrecemos atención al cliente excepcional, soporte completo y consejos valiosos antes, durante y después de la compraventa para construir relaciones duraderas.</p>
                     </div>
                 </div>
             </div>
@@ -210,12 +215,12 @@
         <section class="cta-section">
             <div class="cta-container">
                 <div class="cta-text">
-                    <h2>¿Quieres comprar o vender una casa?</h2>
-                    <p>"Contáctanos hoy y nuestro equipo de agentes experimentados te guiará en cada paso del proceso de compra-venta, desde inspecciones hasta negociaciones, con un agente dedicado a entender tus necesidades.</p>
-                    <a href="#contacto" class="btn btn-cta">CONTACTANOS</a>
+                    <h2 data-i18n="cta.titulo">¿Quieres comprar o vender una casa?</h2>
+                    <p data-i18n="cta.texto">Contáctanos hoy y nuestro equipo de agentes experimentados te guiará en cada paso del proceso de compra-venta, desde inspecciones hasta negociaciones, con un agente dedicado a entender tus necesidades.</p>
+                    <a href="#contacto" class="btn btn-cta" data-i18n="cta.boton">CONTÁCTANOS</a>
                 </div>
                 <div class="cta-image">
-                    <img src="/PagVL/images/cte.jpg" alt="Interior de casa moderna">
+                    <img src="/PagVL/images/cte.jpg" alt="Interior de casa moderna" data-i18n-alt="cta.alt">
                 </div>
             </div>
         </section>
@@ -235,7 +240,7 @@
 
         <section class="contact-section" id="contacto">
             <div class="container">
-                <h2 class="section-title">Contáctanos</h2>
+                <h2 class="section-title" data-i18n="contacto.titulo">Contáctanos</h2>
 
                 <div class="contact-icons-grid">
                     <a href="#" class="contact-icon-item">
@@ -244,8 +249,8 @@
                         <span>xxx-xxx-xxxx</span>
                     </a>
                     <a href="#" class="contact-icon-item">
-                        <img src="/PagVL/images/correo.png" alt="Correo">
-                        <strong>Correo</strong>
+                        <img src="/PagVL/images/correo.png" alt="Correo" data-i18n-alt="contacto.correo">
+                        <strong data-i18n="contacto.correo">Correo</strong>
                         <span>ejemplo@gmail.com</span>
                     </a>
                     <a href="https://www.instagram.com/viveslara/" target="_blank" class="contact-icon-item">
@@ -264,26 +269,26 @@
                         <span>/inmobiliaria</span>
                     </a>
                     <a href="#" class="contact-icon-item">
-                        <img src="/PagVL/images/chat.png" alt="Chat virtual">
-                        <strong>Chat virtual</strong>
+                        <img src="/PagVL/images/chat.png" alt="Chat virtual" data-i18n-alt="contacto.chat">
+                        <strong data-i18n="contacto.chat">Chat virtual</strong>
                         <span>xxx-xxx-xxxx</span>
                     </a>
                 </div>
 
-                <p class="contact-subtitle">Déjanos un mensaje y nosotros te contactaremos a la brevedad</p>
+                <p class="contact-subtitle" data-i18n="contacto.subtitulo">Déjanos un mensaje y nosotros te contactaremos a la brevedad</p>
 
                 <form class="contact-form">
     <div class="form-row">
-        <input type="text" name="nombre" class="form-control" placeholder="Nombre" required>
-        <input type="tel" name="telefono" class="form-control" placeholder="Teléfono" required>
+        <input type="text" name="nombre" class="form-control" placeholder="Nombre" data-i18n-placeholder="form.nombre" required>
+        <input type="tel" name="telefono" class="form-control" placeholder="Teléfono" data-i18n-placeholder="form.telefono" required>
     </div>
     <div class="form-row">
-        <input type="tel" name="celular" class="form-control" placeholder="Celular" required>
-        <input type="email" name="correo" class="form-control" placeholder="Correo electrónico" required>
+        <input type="tel" name="celular" class="form-control" placeholder="Celular" data-i18n-placeholder="form.celular" required>
+        <input type="email" name="correo" class="form-control" placeholder="Correo electrónico" data-i18n-placeholder="form.correo" required>
     </div>
-    <textarea name="mensaje" class="form-control" placeholder="Mensaje" rows="5" required></textarea>
+    <textarea name="mensaje" class="form-control" placeholder="Mensaje" data-i18n-placeholder="form.mensaje" rows="5" required></textarea>
     
-    <button type="submit" class="btn btn-enviar">Enviar</button>
+    <button type="submit" class="btn btn-enviar" data-i18n="form.enviar">Enviar</button>
 </form>
 
             </div>
@@ -296,17 +301,18 @@
         <div class="footer-container">
             <div class="footer-logo">
     <img src="/PagVL/images/LOGO-nofondo-nombre.png" alt="Inmobiliaria Vives Lara">
-    <a href="/aviso-de-privacidad">Aviso de privacidad</a>
+    <a href="/aviso-de-privacidad" data-i18n="pie.privacidad">Aviso de privacidad</a>
 </div>
             <div class="footer-contacto">
-                <a href="#contacto">Contáctanos</a>
+                <a href="#contacto" data-i18n="pie.contactanos">Contáctanos</a>
             </div>
             <div class="footer-copy">
-                <p>© Inmobiliaria Vives Lara - derechos reservados</p>
+                <p data-i18n="pie.derechos">© Inmobiliaria Vives Lara - derechos reservados</p>
             </div>
         </div>
     </footer>
 
+    <script src="/PagVL/js/i18n.js?v=3"></script>
     <script src="/PagVL/js/main.js"></script>
 </body>
 </html>

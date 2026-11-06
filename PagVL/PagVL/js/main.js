@@ -1,6 +1,9 @@
 // Misma ruta de origen: funciona en cualquier dominio (www, mx, sin prefijo) y en localhost
 const API_BASE = '';
 
+// Textos traducibles (ver js/i18n.js)
+const t = (clave, vars) => window.i18n.t(clave, vars);
+
 // =============================================
 // LÓGICA GLOBAL (Se ejecuta en todas las páginas)
 
@@ -72,8 +75,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // =============================================
     function createPropertyCardHTML(property) {
         const priceFormatted = formatCurrency(property.price); 
-        let priceLabel = property.operation === 'renta' ? ' / Mes' : '';
-        const operationText = property.operation.charAt(0).toUpperCase() + property.operation.slice(1);
+        let priceLabel = property.operation === 'renta' ? ' / ' + t('tarjeta.mes') : '';
+        const operationText = window.i18n.tOr('op.' + property.operation, property.operation.charAt(0).toUpperCase() + property.operation.slice(1));
 
         // ¡OJO! El elemento principal ahora es un <a> (enlace)
         return `
@@ -156,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         heroSearchState[stateKey] = value;
 
-                        if (stateKey === 'tipo') { toggleBtn.firstChild.textContent = 'Tipo: ' + e.target.textContent; }
+                        if (stateKey === 'tipo') { toggleBtn.firstChild.textContent = t('buscador.tipoPrefijo') + e.target.textContent; }
 
                         else { toggleBtn.firstChild.textContent = e.target.textContent; }
 
@@ -265,7 +268,7 @@ if (heroSearchState.precio < maxPriceHero) params.append('precio', heroSearchSta
 
             if (filtered.length === 0) {
 
-                propertiesContainerIndex.innerHTML = '<p class="no-results">No se encontraron propiedades.</p>';
+                propertiesContainerIndex.innerHTML = '<p class="no-results">' + t('listado.sinResultados') + '</p>';
 
             } else {
 
@@ -315,7 +318,7 @@ if (heroSearchState.precio < maxPriceHero) params.append('precio', heroSearchSta
 
             });
 
-            propertiesContainerIndex.innerHTML = '<p class="no-results">Cargando...</p>';
+            propertiesContainerIndex.innerHTML = '<p class="no-results">' + t('listado.cargando') + '</p>';
 
             fetch(API_BASE + '/api/public/propiedades')
 
@@ -375,7 +378,7 @@ if (heroSearchState.precio < maxPriceHero) params.append('precio', heroSearchSta
 
                             const count = locationCounts[location] || 0;
 
-                            span.textContent = `${count} ${count === 1 ? 'Property' : 'Properties'}`;
+                            span.textContent = t(count === 1 ? 'zonas.uno' : 'zonas.otros', { n: count });
 
                         });
 
@@ -385,7 +388,7 @@ if (heroSearchState.precio < maxPriceHero) params.append('precio', heroSearchSta
 
                 .catch(() => {
 
-                    propertiesContainerIndex.innerHTML = '<p class="no-results">Error al cargar propiedades.</p>';
+                    propertiesContainerIndex.innerHTML = '<p class="no-results">' + t('listado.error') + '</p>';
 
                 });
 
@@ -484,7 +487,7 @@ if (heroSearchState.precio < maxPriceHero) params.append('precio', heroSearchSta
             });
             
             if (filtered.length === 0) {
-                propertiesContainerPage.innerHTML = '<p class="no-results">No se encontraron propiedades.</p>';
+                propertiesContainerPage.innerHTML = '<p class="no-results">' + t('listado.sinResultados') + '</p>';
             } else {
                 filtered.forEach(prop => {
                     propertiesContainerPage.innerHTML += createPropertyCardHTML(prop);
@@ -570,7 +573,7 @@ if (priceSliderPage) {
 
         setInitialFilters();
 
-        propertiesContainerPage.innerHTML = '<p class="no-results">Cargando...</p>';
+        propertiesContainerPage.innerHTML = '<p class="no-results">' + t('listado.cargando') + '</p>';
 
         fetch(API_BASE + '/api/public/propiedades')
 
@@ -616,7 +619,7 @@ if (priceSliderPage) {
 
             .catch(() => {
 
-                propertiesContainerPage.innerHTML = '<p class="no-results">Error al cargar propiedades.</p>';
+                propertiesContainerPage.innerHTML = '<p class="no-results">' + t('listado.error') + '</p>';
 
             });
 
@@ -699,23 +702,23 @@ if (priceSliderPage) {
 
         // --- 4. Rellenar la página ---
 
-        const typeMap = { 'casa-habitacion': 'Casa Habitación', 'comercial': 'Comercial', 'departamento': 'Departamento', 'oficina': 'Oficina', 'residencial': 'Residencial', 'residencial-casa': 'Residencial (Casa)', 'residencial-departamento': 'Residencial (Depto)', 'residencial-terreno': 'Residencial (Terreno)' };
+        const typeMap = new Proxy({}, { get: (_, clave) => window.i18n.tOr('tipoMap.' + clave, undefined) });
 
-        const operationMap = { 'venta': 'Venta', 'renta': 'Renta' };
+        const operationMap = new Proxy({}, { get: (_, clave) => window.i18n.tOr('op.' + clave, undefined) });
 
        
 
-        const typeText = typeMap[property.type] || 'No especificado';
+        const typeText = typeMap[property.type] || t('detalle.noEspecificado');
 
-        const operationText = operationMap[property.operation] || 'No especificado';
+        const operationText = operationMap[property.operation] || t('detalle.noEspecificado');
 
-        const priceText = formatCurrency(property.price) + (property.operation === 'renta' ? ' / Mes' : '');
+        const priceText = formatCurrency(property.price) + (property.operation === 'renta' ? ' / ' + t('tarjeta.mes') : '');
 
         const [ciudad, estado] = property.locationName.split(', ');
 
 
 
-        document.title = `Inmobiliaria | ${property.title}`;
+        document.title = `${t('meta.prefijoDetalle')} | ${property.title}`;
 
         detailTitle.textContent = property.title;
 
@@ -789,7 +792,7 @@ if (priceSliderPage) {
 
             thumb.src = imgUrl;
 
-            thumb.alt = `Miniatura ${index + 1}`;
+            thumb.alt = t('detalle.miniatura', { n: index + 1 });
 
             thumb.classList.add('thumbnail');
 
@@ -861,9 +864,9 @@ if (priceSliderPage) {
 
         document.querySelector('#detail-feature-type span').textContent = typeText;
 
-        document.querySelector('#detail-feature-bedrooms span').textContent = `${property.bedrooms} Dormitorios`;
+        document.querySelector('#detail-feature-bedrooms span').textContent = t('detalle.dormitoriosN', { n: property.bedrooms });
 
-        document.querySelector('#detail-feature-bathrooms span').textContent = `${property.bathrooms} Baños`;
+        document.querySelector('#detail-feature-bathrooms span').textContent = t('detalle.banosN', { n: property.bathrooms });
 
         document.querySelector('#detail-feature-area span').textContent = `${property.area} m²`;
 
@@ -889,9 +892,9 @@ if (priceSliderPage) {
 
         document.getElementById('detail-table-direccion').textContent = property.address;
 
-        document.getElementById('detail-table-ciudad').textContent = ciudad || 'No especificado';
+        document.getElementById('detail-table-ciudad').textContent = ciudad || t('detalle.noEspecificado');
 
-        document.getElementById('detail-table-estado-geo').textContent = estado || 'No especificado';
+        document.getElementById('detail-table-estado-geo').textContent = estado || t('detalle.noEspecificado');
 
 
 
@@ -917,7 +920,7 @@ if (priceSliderPage) {
 
         if (contactMessage) {
 
-            contactMessage.value = `Estoy interesado en la propiedad: ${property.title} (ID: ${property.id})`;
+            contactMessage.value = t('detalle.interesado', { titulo: property.title, id: property.id });
 
         }
 
@@ -931,7 +934,7 @@ if (priceSliderPage) {
 if (mapIframe) {
     if (property.coordinates) {
         const coords = property.coordinates.replace(/\s/g, '');
-        mapIframe.src = `https://maps.google.com/maps?q=${coords}&hl=es&z=15&output=embed`;
+        mapIframe.src = `https://maps.google.com/maps?q=${coords}&hl=${window.i18n.idioma}&z=15&output=embed`;
     } else {
         mapIframe.src = `https://maps.google.com/maps?q=19.1738,-96.1342&hl=es&z=12&output=embed`;
     }
@@ -941,9 +944,9 @@ if (mapIframe) {
 
             .catch(() => {
 
-                detailTitle.textContent = 'Propiedad no encontrada';
+                detailTitle.textContent = t('detalle.noEncontrada');
 
-                document.querySelector('.property-detail-page .container').innerHTML = '<h1>Error 404</h1><p>La propiedad que busca no existe. <a href="/">Volver al inicio</a>.</p>';
+                document.querySelector('.property-detail-page .container').innerHTML = '<h1>Error 404</h1><p>' + t('detalle.noExiste') + ' <a href="/">' + t('detalle.volver') + '</a>.</p>';
 
             });
 
@@ -956,9 +959,9 @@ if (mapIframe) {
         <div class="form-overlay" style="display: none;"></div>
         <div class="form-success-message" style="display: none;">
             <i class="fas fa-check-circle icon-check"></i>
-            <h4>¡Gracias!</h4>
-            <p>Tu mensaje se ha enviado correctamente.</p>
-            <button class="form-success-ok-btn">OK</button>
+            <h4>${t('form.gracias')}</h4>
+            <p>${t('form.exito')}</p>
+            <button class="form-success-ok-btn">${t('form.ok')}</button>
         </div>
     `;
 document.body.insertAdjacentHTML('beforeend', successMessageHTML);
@@ -993,7 +996,7 @@ document.querySelectorAll('.contact-form').forEach(form => {
 
         const submitButton = form.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.textContent;
-        submitButton.textContent = 'Enviando...';
+        submitButton.textContent = t('form.enviando');
         submitButton.disabled = true;
 
         const formData = new FormData(form);
@@ -1009,11 +1012,11 @@ document.querySelectorAll('.contact-form').forEach(form => {
                 form.reset(); // ¡Borra el formulario!
                 showSuccessPopup(); // ¡Muestra el pop-up de "Gracias"!
             } else {
-                alert('Hubo un error al enviar tu mensaje. Por favor, intenta de nuevo.');
+                alert(t('form.errorEnvio'));
             }
 
         } catch (error) {
-            alert('Hubo un error de conexión. Por favor, revisa tu internet.');
+            alert(t('form.errorConexion'));
         
         } finally {
             // Regresamos el botón a la normalidad

@@ -594,6 +594,44 @@ a.property-card {
     background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
 }
 
+/* ---------- Selector de idioma ---------- */
+.header-info {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.lang-switch {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 22px;
+    border-left: 1px solid rgba(210, 217, 227, 0.35);
+    color: rgba(233, 237, 242, 0.5);
+}
+
+.lang-switch button {
+    background: transparent;
+    border: none;
+    color: rgba(233, 237, 242, 0.65);
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 6px 4px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.lang-switch button:hover {
+    color: #fff;
+}
+
+.lang-switch button.activo {
+    color: #fff;
+    border-bottom: 1px solid #fff;
+}
+
 /* ---------- Detalles finos ---------- */
 ::selection {
     background: #cfd6e0;
@@ -702,6 +740,19 @@ input:focus-visible {
 
     .header-nav a::after {
         bottom: 0;
+    }
+
+    .header-info {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .header-info .header-nav {
+        flex: 1;
+    }
+
+    .lang-switch {
+        padding-left: 10px;
     }
 
     .properties-page-layout {
