@@ -13,6 +13,22 @@ const app = express();
 
 const CORREO_REGEX = /^[^\s@]+@[^\s@]+\.com$/;
 
+// Dominio canónico del sitio (se usa en sitemap.xml). Se puede sobrescribir con SITE_URL en .env
+const SITE_URL = process.env.SITE_URL || "https://www.viveslarabienesraices.com";
+
+// Convierte un título en un "slug" para la URL:
+// "Departamento en Jardines de Virginia" -> "departamento-en-jardines-de-virginia"
+function slugify(texto) {
+  return String(texto || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "") // quita acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")                      // todo lo que no sea letra/número -> "-"
+    .replace(/^-+|-+$/g, "")                           // sin guiones al inicio/fin
+    .slice(0, 80);
+}
+
+const PAGINAS_PUBLICAS = path.join(__dirname, "PagVL", "PagVL");
+
 /* =========================
    BITÁCORA
 ========================= */
@@ -34,6 +50,29 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// IMPORTANTE (orden en Express): gana la PRIMERA ruta que coincide. Las redirecciones de URLs antiguas
+// van ANTES de express.static, o este serviria los .html viejos con 200 en lugar de redirigir.
+// REDIRECCIONES 301 (permanentes) desde las URLs antiguas, para no romper enlaces ni posicionamiento
+const desdeQuery = (req) => (req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "");
+
+app.get(["/PagVL", "/PagVL/", "/PagVL/index.html", "/index.html"], (req, res) => res.redirect(301, "/"));
+app.get("/PagVL/propiedades.html", (req, res) => res.redirect(301, "/propiedades" + desdeQuery(req)));
+app.get("/PagVL/privacidad.html", (req, res) => res.redirect(301, "/aviso-de-privacidad"));
+app.get(["/PagVL/propiedad-detalle.html", "/propiedad-detalle.html"], async (req, res, next) => {
+  const id = parseInt(req.query.id, 10);
+  if (!Number.isInteger(id)) return res.status(404).sendFile(path.join(PAGINAS_PUBLICAS, "404.html"));
+  try {
+    const r = await pool.query(
+      "SELECT propiedad FROM propiedades WHERE id = $1 AND estado_publicacion = 'publicada'",
+      [id]
+    );
+    if (r.rows.length === 0) return res.status(404).sendFile(path.join(PAGINAS_PUBLICAS, "404.html"));
+    res.redirect(301, `/propiedades/${id}-${slugify(r.rows[0].propiedad)}`);
+  } catch (error) {
+    next(error);
+  }
+});
+
 /* =========================
    SERVIR ARCHIVOS ESTÁTICOS Y HTML
 ========================= */
@@ -44,18 +83,36 @@ app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/imagenes", express.static(path.join(__dirname, "imagenes")));
 app.use("/public", express.static(path.join(__dirname, "public")));
 
-// 2. Recursos específicos del subdirectorio PagVL
-app.use("/images", express.static(path.join(__dirname, "PagVL", "PagVL", "images")));
-app.use('/PagVL', express.static(path.join(__dirname, 'PagVL/PagVL')));
+// 2. Recursos (css, js, imágenes) del sitio público. Los archivos .html ya NO se exponen aquí:
+//    las páginas se sirven con rutas limpias (sección 3).
+app.use("/images", express.static(path.join(PAGINAS_PUBLICAS, "images")));
+app.use("/PagVL", express.static(PAGINAS_PUBLICAS, { index: false, extensions: false }));
 
-// 3. Rutas específicas para páginas HTML individuales
-app.get('/PagVL/index.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/index.html')));
-app.get('/PagVL/propiedades.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/propiedades.html')));
-app.get('/PagVL/propiedad-detalle.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/propiedad-detalle.html')));
-app.get('/PagVL/privacidad.html', (req, res) => res.sendFile(path.join(__dirname, 'PagVL/PagVL/privacidad.html')));
-app.get("/propiedad-detalle.html", (req, res) => {
-  const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
-  res.redirect(301, "/PagVL/propiedad-detalle.html" + query);
+// 3. RUTAS LIMPIAS DEL SITIO PÚBLICO
+//    /                         -> inicio
+//    /propiedades              -> listado (los filtros van en la query: ?ubicacion=veracruz)
+//    /propiedades/76-mi-casa   -> detalle ("id-slug")
+//    /aviso-de-privacidad      -> aviso de privacidad
+app.get("/", (req, res) => res.sendFile(path.join(PAGINAS_PUBLICAS, "index.html")));
+app.get("/propiedades", (req, res) => res.sendFile(path.join(PAGINAS_PUBLICAS, "propiedades.html")));
+app.get("/aviso-de-privacidad", (req, res) => res.sendFile(path.join(PAGINAS_PUBLICAS, "privacidad.html")));
+
+app.get("/propiedades/:idSlug", async (req, res, next) => {
+  const id = parseInt(req.params.idSlug, 10); // "76-departamento-x" -> 76
+  if (!Number.isInteger(id)) return next();
+  try {
+    const r = await pool.query(
+      "SELECT propiedad FROM propiedades WHERE id = $1 AND estado_publicacion = 'publicada'",
+      [id]
+    );
+    if (r.rows.length === 0) return next(); // no existe -> 404
+    const canonica = `${id}-${slugify(r.rows[0].propiedad)}`;
+    // Si el slug no coincide (título cambiado, mayúsculas, solo "76"...), se redirige a la URL correcta
+    if (req.params.idSlug !== canonica) return res.redirect(301, `/propiedades/${canonica}`);
+    res.sendFile(path.join(PAGINAS_PUBLICAS, "propiedad-detalle.html"));
+  } catch (error) {
+    next(error);
+  }
 });
 
 // 4. Ruta para el Panel de Administración de la Inmobiliaria
@@ -73,11 +130,6 @@ app.get('/admin-usuarios.html', (req, res) =>
 app.get('/admin-propiedades.html', (req, res) =>
   res.sendFile(path.join(__dirname, 'public/admin-propiedades.html'))
 );
-
-// 5. RUTA RAÍZ PRINCIPAL: Muestra el index de la inmobiliaria por defecto
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'PagVL', 'PagVL', 'index.html'));
-});
 
 /* =========================
    CONFIGURACIÓN DE MULTER
@@ -787,7 +839,7 @@ app.delete("/api/propiedades/:id", verificarToken, permitirRoles("admin", "edito
 app.get("/api/public/propiedades", async (req, res) => {
   try {
     const resultado = await pool.query(`SELECT p.*, (SELECT pm.url_archivo FROM propiedad_multimedia pm WHERE pm.propiedad_id = p.id ORDER BY pm.principal DESC LIMIT 1) AS imagen_principal FROM propiedades p WHERE p.estado_publicacion = 'publicada' ORDER BY p.creado_en DESC`);
-    res.json(resultado.rows);
+    res.json(resultado.rows.map(p => ({ ...p, slug: slugify(p.propiedad) })));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error" });
@@ -817,6 +869,7 @@ app.get("/api/public/propiedades/:id", async (req, res) => {
 
     res.json({
       ...propiedad.rows[0],
+      slug: slugify(propiedad.rows[0].propiedad),
       imagenes: imagenes.rows
     });
 
@@ -842,6 +895,53 @@ app.get("/api/bitacora", verificarToken, permitirRoles("admin"), async (req, res
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
+});
+
+/* =========================
+   SEO: robots.txt, sitemap.xml y página 404
+========================= */
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").send(
+    [
+      "User-agent: *",
+      "Disallow: /admin",
+      "Disallow: /api/",
+      `Sitemap: ${SITE_URL}/sitemap.xml`,
+      ""
+    ].join("\n")
+  );
+});
+
+app.get("/sitemap.xml", async (req, res, next) => {
+  try {
+    const r = await pool.query(
+      "SELECT id, propiedad, actualizado_en FROM propiedades WHERE estado_publicacion = 'publicada' ORDER BY id"
+    );
+    const urls = [
+      { loc: "/" },
+      { loc: "/propiedades" },
+      { loc: "/aviso-de-privacidad" },
+      ...r.rows.map(p => ({
+        loc: `/propiedades/${p.id}-${slugify(p.propiedad)}`,
+        lastmod: p.actualizado_en ? new Date(p.actualizado_en).toISOString().slice(0, 10) : null
+      }))
+    ];
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+      urls.map(u => `  <url><loc>${SITE_URL}${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ""}</url>`).join("\n") +
+      "\n</urlset>\n";
+    res.type("application/xml").send(xml);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Cualquier ruta que no exista: JSON para /api, página 404 amigable para el resto.
+// Debe ir DESPUÉS de todas las rutas.
+app.use((req, res) => {
+  if (req.path.startsWith("/api/")) return res.status(404).json({ error: "Ruta no encontrada" });
+  res.status(404).sendFile(path.join(PAGINAS_PUBLICAS, "404.html"));
 });
 
 /* =========================

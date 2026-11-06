@@ -607,6 +607,62 @@ input:focus-visible {
     outline-offset: 2px;
 }
 
+/* ---------- Página 404 ---------- */
+.pagina-404 {
+    text-align: center;
+    padding: 90px 20px 110px;
+}
+
+.pagina-404 .codigo-404 {
+    font-family: var(--serif);
+    font-size: 7rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--navy);
+    margin-bottom: 8px;
+}
+
+.pagina-404 h1 {
+    font-family: var(--serif);
+    font-size: 2.4rem;
+    color: var(--navy);
+    margin-bottom: 14px;
+}
+
+.pagina-404 p {
+    color: var(--gris);
+    max-width: 520px;
+    margin: 0 auto 32px;
+    line-height: 1.8;
+}
+
+.acciones-404 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.acciones-404 .btn {
+    display: inline-block;
+}
+
+.btn-enlace-404 {
+    color: var(--navy);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--plata);
+    padding-bottom: 3px;
+}
+
+.btn-enlace-404:hover {
+    color: var(--navy-2);
+    border-bottom-color: var(--navy);
+}
+
 /* ---------- Celular ---------- */
 @media (max-width: 768px) {
     .hero-section {

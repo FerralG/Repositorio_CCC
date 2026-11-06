@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ¡OJO! El elemento principal ahora es un <a> (enlace)
         return `
-        <a href="/PagVL/propiedad-detalle.html?id=${property.id}" class="property-card">
+        <a href="/propiedades/${property.id}-${property.slug}" class="property-card">
             
             <div class="property-image-container"> 
                 <img src="${property.imageUrl}" alt="${property.title}">
@@ -222,7 +222,7 @@ let maxPriceHero = parseInt(document.getElementById('price-slider').max);
 
 if (heroSearchState.precio < maxPriceHero) params.append('precio', heroSearchState.precio);
 
-            window.location.href = `/PagVL/propiedades.html?${params.toString()}`;
+            window.location.href = `/propiedades?${params.toString()}`;
 
         });
 
@@ -326,6 +326,8 @@ if (heroSearchState.precio < maxPriceHero) params.append('precio', heroSearchSta
                     allPropertiesIndex = data.map(p => ({
 
                         id: p.id,
+
+                        slug: p.slug,
 
                         title: p.propiedad,
 
@@ -580,6 +582,8 @@ if (priceSliderPage) {
 
                     id: p.id,
 
+                    slug: p.slug,
+
                     title: p.propiedad,
 
                     operation: p.tipo_operacion,
@@ -638,9 +642,8 @@ if (priceSliderPage) {
 
         // --- 1. Obtener el ID de la URL ---
 
-        const urlParams = new URLSearchParams(window.location.search);
-
-        const propertyId = urlParams.get('id');
+        // La URL es /propiedades/76-nombre-de-la-propiedad -> el id es el número antes del primer guion
+        const propertyId = parseInt(window.location.pathname.split('/').pop(), 10);
 
 
 
@@ -940,7 +943,7 @@ if (mapIframe) {
 
                 detailTitle.textContent = 'Propiedad no encontrada';
 
-                document.querySelector('.property-detail-page .container').innerHTML = '<h1>Error 404</h1><p>La propiedad que busca no existe. <a href="/PagVL/index.html">Volver al inicio</a>.</p>';
+                document.querySelector('.property-detail-page .container').innerHTML = '<h1>Error 404</h1><p>La propiedad que busca no existe. <a href="/">Volver al inicio</a>.</p>';
 
             });
 
