@@ -1,6 +1,5 @@
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:3002'
-  : 'https://mx.viveslarabienesraices.com';
+// Misma ruta de origen: funciona en cualquier dominio (www, mx, sin prefijo) y en localhost
+const API_BASE = '';
 
 // =============================================
 // LÓGICA GLOBAL (Se ejecuta en todas las páginas)
