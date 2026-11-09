@@ -131,6 +131,13 @@
   </main>
 
   <script>
+    // Escapa texto antes de meterlo en innerHTML (un dato guardado nunca debe ejecutarse como código)
+    function esc(valor) {
+      return String(valor ?? "").replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+
     const token = localStorage.getItem("token");
     const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
 
@@ -167,10 +174,10 @@
         data.forEach(user => {
           const fila = `
             <tr>
-              <td>${user.nombre_completo}</td>
-              <td>${user.usuario}</td>
-              <td>${user.correo}</td>
-              <td>${user.rol}</td>
+              <td>${esc(user.nombre_completo)}</td>
+              <td>${esc(user.usuario)}</td>
+              <td>${esc(user.correo)}</td>
+              <td>${esc(user.rol)}</td>
               <td>${user.activo ? "Sí" : "No"}</td>
               <td>${new Date(user.creado_en).toLocaleString()}</td>
             </tr>

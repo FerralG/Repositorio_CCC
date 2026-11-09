@@ -3,7 +3,14 @@
    Preferencias, modo oscuro e internacionalización
    ============================================= */
 
-window.API_URL = window.location.origin;; // <-- Reemplaza por la IP/Puerto o subdominio real de tu API
+window.API_URL = window.location.origin;;
+
+// Escapa texto antes de meterlo en innerHTML: un dato guardado (p. ej. un nombre de propiedad) nunca debe ejecutarse como código
+window.esc = function (valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}; // <-- Reemplaza por la IP/Puerto o subdominio real de tu API
 
 const TRADUCCIONES = {
   es: {

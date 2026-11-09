@@ -11,6 +11,23 @@ const pool = require("./db");
 
 const app = express();
 
+app.disable("x-powered-by");
+// Detrás de Nginx Proxy Manager: con esto req.ip es la IP real del visitante (la que llega en X-Forwarded-For)
+app.set("trust proxy", 1);
+
+if (!process.env.JWT_SECRET) {
+  console.error("Falta JWT_SECRET en el .env: el servidor no puede iniciar sin él.");
+  process.exit(1);
+}
+
+// Cabeceras de seguridad básicas
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
 const CORREO_REGEX = /^[^\s@]+@[^\s@]+\.com$/;
 
 // Dominio canónico del sitio (se usa en sitemap.xml). Se puede sobrescribir con SITE_URL en .env
@@ -28,6 +45,23 @@ function slugify(texto) {
 }
 
 const PAGINAS_PUBLICAS = path.join(__dirname, "PagVL", "PagVL");
+
+/* =========================
+   ARCHIVOS SUBIDOS
+========================= */
+// Borra del disco una imagen de /uploads, pero solo si ninguna fila de propiedad_multimedia la sigue usando
+// (algunas imágenes antiguas están compartidas entre propiedades).
+async function borrarArchivoSiNadieLoUsa(url) {
+  if (!url || !url.startsWith("/uploads/")) return;
+  const uso = await pool.query("SELECT 1 FROM propiedad_multimedia WHERE url_archivo = $1 LIMIT 1", [url]);
+  if (uso.rows.length > 0) return;
+  const ruta = path.join(__dirname, "public", "uploads", path.basename(url)); // basename evita rutas con ../
+  try {
+    await fs.promises.unlink(ruta);
+  } catch (error) {
+    if (error.code !== "ENOENT") console.error("No se pudo borrar", ruta, error.message);
+  }
+}
 
 /* =========================
    BITÁCORA
@@ -186,13 +220,49 @@ app.get("/api/test-db", async (req, res) => {
   }
 });
 
+// Límite de intentos fallidos (en memoria): por IP y por usuario, en ventanas de 15 minutos
+const VENTANA_LOGIN_MS = 15 * 60 * 1000;
+const MAX_FALLOS_LOGIN = Number(process.env.LOGIN_MAX_FALLOS) || 20;
+const fallosLogin = new Map(); // clave -> { cuenta, hasta }
+
+function segundosDeBloqueo(clave) {
+  const r = fallosLogin.get(clave);
+  if (!r) return 0;
+  if (Date.now() > r.hasta) { fallosLogin.delete(clave); return 0; }
+  return r.cuenta >= MAX_FALLOS_LOGIN ? Math.ceil((r.hasta - Date.now()) / 1000) : 0;
+}
+
+function sumarFallo(clave) {
+  const r = fallosLogin.get(clave);
+  if (!r || Date.now() > r.hasta) fallosLogin.set(clave, { cuenta: 1, hasta: Date.now() + VENTANA_LOGIN_MS });
+  else r.cuenta++;
+}
+
+setInterval(() => {
+  const ahora = Date.now();
+  for (const [clave, r] of fallosLogin) if (ahora > r.hasta) fallosLogin.delete(clave);
+}, VENTANA_LOGIN_MS).unref();
+
+// Hash de relleno: así tarda lo mismo comprobar un usuario que no existe que uno que sí
+const HASH_FALSO = bcrypt.hashSync("contraseña-que-no-existe", 10);
+
 app.post("/api/login", async (req, res) => {
   try {
     const { usuario, password } = req.body;
 
-    if (!usuario || !password) {
+    if (!usuario || !password || typeof usuario !== "string" || typeof password !== "string") {
       return res.status(400).json({
         error: "Usuario y contraseña son obligatorios"
+      });
+    }
+
+    const claveIp = "ip:" + req.ip;
+    const claveUsuario = "u:" + usuario.toLowerCase();
+    const espera = Math.max(segundosDeBloqueo(claveIp), segundosDeBloqueo(claveUsuario));
+    if (espera > 0) {
+      res.set("Retry-After", String(espera));
+      return res.status(429).json({
+        error: "Demasiados intentos. Intenta de nuevo en unos minutos."
       });
     }
 
@@ -201,20 +271,27 @@ app.post("/api/login", async (req, res) => {
       [usuario]
     );
 
-    if (resultado.rows.length === 0) {
-      return res.status(401).json({
-        error: "Usuario no encontrado o inactivo"
-      });
-    }
-
     const user = resultado.rows[0];
-    const passwordCorrecta = await bcrypt.compare(password, user.password_hash);
+    const passwordCorrecta = await bcrypt.compare(password, user ? user.password_hash : HASH_FALSO);
 
-    if (!passwordCorrecta) {
+    // Mismo mensaje para "no existe", "inactivo" y "contraseña incorrecta": no revela qué usuarios existen
+    if (!user || !passwordCorrecta) {
+      sumarFallo(claveIp);
+      sumarFallo(claveUsuario);
+      registrarBitacora({
+        usuario_id: null,
+        usuario_nombre: usuario.slice(0, 100),
+        accion: "LOGIN_FALLIDO",
+        modulo: "AUTH",
+        descripcion: "Intento de inicio de sesión fallido",
+        ip: req.ip
+      });
       return res.status(401).json({
-        error: "Contraseña incorrecta"
+        error: "Usuario o contraseña incorrectos"
       });
     }
+
+    fallosLogin.delete(claveUsuario);
 
     const token = jwt.sign(
       {
@@ -576,6 +653,14 @@ app.post("/api/propiedades/:id/imagenes", verificarToken, permitirRoles("admin",
       const r = await pool.query(`INSERT INTO propiedad_multimedia (propiedad_id, url_archivo, tipo_archivo, principal, orden) VALUES ($1, $2, $3, $4, $5) RETURNING *`, [id, url, "imagen", i === 0, i + 1]);
       archivosGuardados.push(r.rows[0]);
     }
+    registrarBitacora({
+      usuario_id: req.usuario.id,
+      usuario_nombre: req.usuario.usuario,
+      accion: "SUBIR_IMAGENES",
+      modulo: "PROPIEDADES",
+      descripcion: `${archivosGuardados.length} imagen(es) en la propiedad #${id}`,
+      ip: req.ip
+    });
     res.status(201).json({ archivos: archivosGuardados });
   } catch (error) {
     console.error(error);
@@ -606,24 +691,22 @@ async (req, res) => {
 
         const imagen = resultado.rows[0];
 
-        if (imagen.url_archivo) {
-
-            const rutaArchivo = path.join(
-                __dirname,
-                "public",
-                imagen.url_archivo.replace("/uploads/", "uploads/")
-            );
-
-            if (fs.existsSync(rutaArchivo)) {
-                fs.unlinkSync(rutaArchivo);
-            }
-        }
-
         await pool.query(
             `DELETE FROM propiedad_multimedia
              WHERE id = $1`,
             [imagenId]
         );
+
+        await borrarArchivoSiNadieLoUsa(imagen.url_archivo);
+
+        registrarBitacora({
+            usuario_id: req.usuario.id,
+            usuario_nombre: req.usuario.usuario,
+            accion: "ELIMINAR_IMAGEN",
+            modulo: "PROPIEDADES",
+            descripcion: `Imagen de la propiedad #${propiedadId}`,
+            ip: req.ip
+        });
 
         res.json({
             mensaje: "Imagen eliminada correctamente"
@@ -828,7 +911,17 @@ app.delete("/api/propiedades/:id", verificarToken, permitirRoles("admin", "edito
     const { id } = req.params;
     const existe = await pool.query("SELECT propiedad FROM propiedades WHERE id = $1", [id]);
     if (existe.rows.length === 0) return res.status(404).json({ error: "No encontrada" });
-    await pool.query("DELETE FROM propiedades WHERE id = $1", [id]);
+    const fotos = await pool.query("SELECT url_archivo FROM propiedad_multimedia WHERE propiedad_id = $1", [id]);
+    await pool.query("DELETE FROM propiedades WHERE id = $1", [id]); // las filas de multimedia se borran en cascada
+    for (const foto of fotos.rows) await borrarArchivoSiNadieLoUsa(foto.url_archivo);
+    registrarBitacora({
+      usuario_id: req.usuario.id,
+      usuario_nombre: req.usuario.usuario,
+      accion: "ELIMINAR",
+      modulo: "PROPIEDADES",
+      descripcion: existe.rows[0].propiedad,
+      ip: req.ip
+    });
     res.json({ mensaje: "Eliminada correctamente" });
   } catch (error) {
     console.error(error);
@@ -885,6 +978,26 @@ app.get("/api/preferencias", verificarToken, async (req, res) => {
     res.json(resultado.rows[0] || { modo_oscuro: false, idioma: "es" });
   } catch (error) {
     res.status(500).json({ error: "Error" });
+  }
+});
+
+app.put("/api/preferencias", verificarToken, async (req, res) => {
+  try {
+    const { modo_oscuro, idioma } = req.body || {};
+    if (typeof modo_oscuro !== "boolean" || !["es", "en"].includes(idioma)) {
+      return res.status(400).json({ error: "Preferencias no válidas" });
+    }
+    await pool.query(
+      `INSERT INTO preferencias_usuario (usuario_id, modo_oscuro, idioma)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (usuario_id)
+       DO UPDATE SET modo_oscuro = EXCLUDED.modo_oscuro, idioma = EXCLUDED.idioma, actualizado_en = NOW()`,
+      [req.usuario.id, modo_oscuro, idioma]
+    );
+    res.json({ modo_oscuro, idioma });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al guardar las preferencias" });
   }
 });
 

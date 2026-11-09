@@ -284,11 +284,11 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td style="white-space:nowrap;">${fecha}</td>
-          <td>${r.usuario_nombre || "—"}</td>
-          <td>${r.modulo || "—"}</td>
-          <td><span class="badge-accion ${badgeClass(r.accion)}">${r.accion}</span></td>
-          <td>${r.descripcion || "—"}</td>
-          <td class="ip-text">${r.ip || "—"}</td>
+          <td>${esc(r.usuario_nombre || "—")}</td>
+          <td>${esc(r.modulo || "—")}</td>
+          <td><span class="badge-accion ${badgeClass(r.accion)}">${esc(r.accion)}</span></td>
+          <td>${esc(r.descripcion || "—")}</td>
+          <td class="ip-text">${esc(r.ip || "—")}</td>
         `;
         tbody.appendChild(tr);
       });

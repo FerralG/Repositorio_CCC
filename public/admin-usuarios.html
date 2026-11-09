@@ -381,10 +381,10 @@
              </button>`;
 
         tr.innerHTML = `
-          <td>${user.nombre_completo}</td>
-          <td>${user.usuario}</td>
-          <td>${user.correo}</td>
-          <td>${user.rol}</td>
+          <td>${esc(user.nombre_completo)}</td>
+          <td>${esc(user.usuario)}</td>
+          <td>${esc(user.correo)}</td>
+          <td>${esc(user.rol)}</td>
           <td>${user.activo ? "Sí" : "No"}</td>
           <td>${new Date(user.creado_en).toLocaleString()}</td>
           <td>

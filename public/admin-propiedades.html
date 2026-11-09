@@ -363,15 +363,15 @@
                     window.location.href = `/admin-detalles.html?id=${prop.id}`;
                 });
 
-                const imagen = prop.imagen_principal ? prop.imagen_principal : placeholderSvg();
+                const imagen = prop.imagen_principal ? esc(prop.imagen_principal) : placeholderSvg();
                 const fecha = new Date(prop.creado_en).toLocaleDateString();
 
                 card.innerHTML = `
-                    <img src="${imagen}" alt="${prop.propiedad || 'Propiedad'}">
+                    <img src="${imagen}" alt="${esc(prop.propiedad || 'Propiedad')}">
 
                     <div class="tarjeta-info">
-                        <h3>${prop.propiedad || "Sin nombre"}</h3>
-                        <p>${prop.direccion || "Sin dirección"}</p>
+                        <h3>${esc(prop.propiedad || "Sin nombre")}</h3>
+                        <p>${esc(prop.direccion || "Sin dirección")}</p>
 
                         <div class="tarjeta-stats">
                             <span><i class="fas fa-bed"></i> ${prop.recamaras ?? 0} Recámaras</span>
@@ -384,11 +384,11 @@
                         </div>
 
                         <div class="tarjeta-stats" style="margin-top: 8px;">
-                            <span><i class="fas fa-tag"></i> ${prop.tipo_operacion || "-"}</span>
+                            <span><i class="fas fa-tag"></i> ${esc(prop.tipo_operacion || "-")}</span>
                             <span style="font-weight:bold;">$${Number(prop.precio || 0).toLocaleString("es-MX")}</span>
                         </div>
 
-                        <span class="estado-pill">${prop.estado_publicacion || "borrador"}</span>
+                        <span class="estado-pill">${esc(prop.estado_publicacion || "borrador")}</span>
 
                         <div style="margin-top:10px; font-size:12px; color:#6b7280;">
                             Alta: ${fecha}
