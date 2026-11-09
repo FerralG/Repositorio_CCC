@@ -1,0 +1,344 @@
+/* =============================================
+   TEMA DEL PANEL - Inmobiliaria Vives Lara
+   Se carga DESPUÉS de main.css y de los estilos de cada página.
+   Para volver al diseño anterior, quitar su <link> de las páginas.
+   El modo oscuro (html.dark) sigue funcionando con las reglas de main.css.
+   ============================================= */
+
+:root {
+    --navy: #0b2545;
+    --navy-2: #13315c;
+    --plata: #9aa4b2;
+    --plata-claro: #e9edf2;
+    --crema: #f7f4ee;
+    --linea: #e8e2d6;
+    --tinta: #1c2433;
+    --gris: #6b7280;
+    --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    --sans: 'Montserrat', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+body {
+    font-family: var(--sans);
+    background: var(--crema);
+    color: var(--tinta);
+    -webkit-font-smoothing: antialiased;
+}
+
+.dashboard-layout { background: var(--crema); }
+
+/* ---------- Títulos ---------- */
+.prop-header h2,
+.panel-card h2,
+.detail-header h1,
+.detail-description-section h3,
+.detail-table-blue h3,
+.login-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--navy);
+}
+
+.prop-header h2 { font-size: clamp(1.7rem, 3.4vw, 2.2rem); }
+
+/* Números normales (la serif los dibuja en "estilo antiguo": el 1 parece una I) */
+.prop-header h2,
+.panel-card h2,
+.detail-header h1,
+.detail-header .property-price,
+.detail-description-section h3,
+.detail-table-blue h3,
+.tarjeta-info h3,
+.mini-card strong,
+.login-title { font-variant-numeric: lining-nums; }
+
+/* ---------- Barra lateral ---------- */
+.sidebar {
+    background: linear-gradient(180deg, var(--navy) 0%, #081a33 100%);
+    border-right: 1px solid rgba(210, 217, 227, 0.18);
+}
+
+.logo { border-bottom: 1px solid rgba(210, 217, 227, 0.22); padding-bottom: 22px; }
+.logo img { filter: brightness(0) invert(1); opacity: 0.92; }
+
+.sidebar ul li {
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    color: #d5dce8;
+}
+
+.sidebar ul li:hover { background: rgba(255, 255, 255, 0.09); color: #fff; }
+
+.sidebar ul li.active {
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--navy);
+    font-weight: 700;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+}
+
+/* ---------- Barra superior ---------- */
+.topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--linea);
+    box-shadow: 0 2px 12px rgba(11, 37, 69, 0.05);
+}
+
+.topbar-nav {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 2.2px;
+    text-transform: uppercase;
+    color: var(--gris);
+}
+
+.topbar-nav span:last-child { color: var(--navy); }
+
+.topbar-search {
+    background: var(--crema);
+    border: 1px solid var(--linea);
+}
+
+.topbar-search input { font-family: var(--sans); }
+.topbar-search .fa-search { color: var(--navy) !important; }
+
+.btn-hamburguesa { color: var(--navy); }
+
+/* ---------- Botones ---------- */
+.btn-header,
+.btn-card,
+.btn-accion,
+.btn-guardar-morado,
+.btn-admin-accion.editar,
+.btn-editar-user,
+.login-btn {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+    color: #fff;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.btn-header:hover,
+.btn-card:hover,
+.btn-accion:hover,
+.btn-guardar-morado:hover,
+.btn-admin-accion.editar:hover,
+.btn-editar-user:hover,
+.login-btn:hover {
+    background: linear-gradient(135deg, var(--navy-2) 0%, #1d4580 100%);
+    box-shadow: 0 8px 18px rgba(11, 37, 69, 0.25);
+}
+
+.btn-secondary,
+.btn-cancelar,
+.btn-admin-accion.volver {
+    background: var(--plata-claro);
+    color: var(--navy);
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-secondary:hover,
+.btn-cancelar:hover,
+.btn-admin-accion.volver:hover { background: #d8dee7; color: var(--navy); }
+
+.btn-ver { background: #fff; color: var(--navy); border: 1px solid var(--plata); }
+.btn-ver:hover { background: var(--plata-claro); }
+
+.btn-duplicar { background: var(--plata-claro); color: var(--navy); }
+.btn-duplicar:hover { background: #d8dee7; }
+
+.btn-reset-pwd { background: var(--plata); color: #fff; }
+.btn-reset-pwd:hover { background: #7f8a9a; }
+
+.btn-danger,
+.btn-eliminar {
+    background: #fff;
+    color: #b42318;
+    border: 1px solid #f1c3bf;
+    border-radius: 8px;
+    font-weight: 600;
+}
+.btn-danger:hover,
+.btn-eliminar:hover { background: #b42318; color: #fff; border-color: #b42318; }
+
+/* ---------- Tarjetas y paneles ---------- */
+.tarjeta-prop,
+.mini-card,
+.panel-card,
+.tabla-wrapper,
+.empty-state {
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(11, 37, 69, 0.05);
+}
+
+.tarjeta-prop { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+.tarjeta-prop:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 18px 38px rgba(11, 37, 69, 0.14);
+    border-color: var(--plata);
+}
+
+.tarjeta-prop img { transition: transform 0.7s ease; }
+.tarjeta-prop:hover img { transform: scale(1.04); }
+.tarjeta-prop { overflow: hidden; }
+
+.tarjeta-info h3 {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.2;
+}
+
+.tarjeta-info p { color: var(--gris); }
+.tarjeta-stats i { color: var(--plata); }
+
+.mini-card {
+    background: #fff;
+    border-top: 3px solid var(--navy);
+}
+.mini-card span {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--gris);
+}
+.mini-card strong {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+#barraFiltros {
+    border: 1px solid var(--linea);
+    border-radius: 8px !important;
+    box-shadow: 0 2px 10px rgba(11, 37, 69, 0.05) !important;
+}
+
+/* ---------- Formularios ---------- */
+.form-input,
+.login-input {
+    font-family: var(--sans);
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.form-input:focus,
+.login-input:focus {
+    border-color: var(--plata);
+    box-shadow: 0 0 0 3px rgba(154, 164, 178, 0.28);
+}
+
+.campo-grupo label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--gris);
+}
+
+/* ---------- Tablas ---------- */
+.tabla-usuarios th,
+.tabla-bitacora th {
+    background: var(--navy);
+    color: #e9edf2;
+    border-bottom: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 1.6px;
+}
+
+.tabla-usuarios td,
+.tabla-bitacora td { border-bottom: 1px solid var(--linea); }
+
+.tabla-usuarios tr:hover td,
+.tabla-bitacora tr:hover td { background: var(--crema); }
+
+/* ---------- Paginación y avisos ---------- */
+.paginacion button { background: var(--plata-claro); color: var(--navy); border-radius: 8px; }
+.paginacion button:hover:not(:disabled):not(.activa) { background: #d8dee7; }
+.paginacion button.activa { background: var(--navy); color: #fff; }
+.barra-resultados { color: var(--gris); font-size: 0.82rem; letter-spacing: 0.4px; }
+.toast { background: var(--navy); border-radius: 8px; }
+.toast.error { background: #b42318; }
+
+/* ---------- Detalle de propiedad ---------- */
+.detail-header .property-price { color: var(--navy); }
+.feature-item i { color: var(--plata) !important; }
+.gallery-thumbnails .thumbnail.active { border-color: var(--navy); }
+.detail-table-blue table { background: var(--plata-claro); }
+.detail-table-blue td:first-child { color: var(--navy); }
+.detail-table-blue tr:not(:last-child) td { border-bottom-color: #d3d9e2; }
+.badge-num.principal { background: var(--navy); }
+
+/* ---------- Inicio de sesión ---------- */
+body.login-body {
+    background: radial-gradient(circle at 20% 15%, var(--navy-2) 0%, var(--navy) 55%, #061428 100%);
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 10px;
+    border-top: 3px solid var(--plata);
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.4);
+}
+
+.login-title { font-size: 2rem; letter-spacing: 2px; margin-bottom: 4px; }
+.login-subtitle { color: var(--gris); letter-spacing: 0.6px; }
+.login-link { color: var(--navy); }
+.login-link:hover { color: var(--navy-2); text-decoration: underline; }
+.brand-info { display: none; } /* el logo ya aparece arriba */
+
+/* ---------- Formulario de propiedad (botones con estilo en línea) ---------- */
+#btnGuardar { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%) !important; color: #fff !important; letter-spacing: 1.2px; }
+#btnGuardar:hover { background: linear-gradient(135deg, var(--navy-2) 0%, #1d4580 100%) !important; }
+#btnVistaPrevia, #btnCancelar { background: var(--plata-claro) !important; color: var(--navy) !important; font-weight: 600; }
+#btnVistaPrevia:hover, #btnCancelar:hover { background: #d8dee7 !important; }
+.badge-nueva { background: var(--navy); }
+.badge-editar { background: var(--plata); }
+.topbar-nav span.badge-modo:last-child { color: #fff; }
+
+/* ---------- Interruptor ---------- */
+.toggle-switch input:checked + .toggle-track { background: var(--navy); }
+
+/* ---------- Detalles finos ---------- */
+::selection { background: #cfd6e0; color: var(--navy); }
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--plata);
+    outline-offset: 2px;
+}
+
+/* ---------- Modo oscuro: conserva el azul marino y no deja fondos claros ---------- */
+html.dark body,
+html.dark .dashboard-layout { background: #0b1220; }
+html.dark .prop-header h2,
+html.dark .panel-card h2,
+html.dark .tarjeta-info h3,
+html.dark .mini-card strong { color: #e9edf2; }
+html.dark .topbar-nav span:last-child { color: #e9edf2; }
+html.dark .btn-secondary,
+html.dark .btn-duplicar,
+html.dark .btn-cancelar { background: #1e293b; color: #e2e8f0; }
+html.dark .btn-ver { background: transparent; color: #e2e8f0; border-color: #475569; }
+html.dark .btn-danger,
+html.dark .btn-eliminar { background: transparent; color: #f87171; border-color: #7f1d1d; }
+html.dark .btn-danger:hover,
+html.dark .btn-eliminar:hover { background: #b42318; color: #fff; }
+html.dark #barraFiltros { background: #1e293b !important; border-color: #334155; }
+html.dark .login-card { background: #111827; }
+html.dark .login-title { color: #e9edf2; }
