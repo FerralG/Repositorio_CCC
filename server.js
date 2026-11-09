@@ -929,6 +929,88 @@ app.delete("/api/propiedades/:id", verificarToken, permitirRoles("admin", "edito
   }
 });
 
+// Estados válidos de una propiedad (los mismos que ofrece el formulario del panel)
+const ESTADOS_PUBLICACION = ["borrador", "publicada", "pausada", "vendida", "rentada"];
+
+// Cambio rápido de estado desde la lista (sin tener que reenviar toda la propiedad con PUT)
+app.patch("/api/propiedades/:id/estado", verificarToken, permitirRoles("admin", "editor"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { estado_publicacion } = req.body || {};
+    if (!Number.isInteger(id) || !ESTADOS_PUBLICACION.includes(estado_publicacion)) {
+      return res.status(400).json({ error: "Estado no válido" });
+    }
+    const r = await pool.query(
+      "UPDATE propiedades SET estado_publicacion = $1, actualizado_en = NOW() WHERE id = $2 RETURNING id, propiedad, estado_publicacion",
+      [estado_publicacion, id]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ error: "Propiedad no encontrada" });
+    registrarBitacora({
+      usuario_id: req.usuario.id,
+      usuario_nombre: req.usuario.usuario,
+      accion: "EDITAR",
+      modulo: "PROPIEDADES",
+      descripcion: `${r.rows[0].propiedad}: estado a ${estado_publicacion}`,
+      ip: req.ip
+    });
+    res.json(r.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al cambiar el estado" });
+  }
+});
+
+// Duplicar una propiedad: copia los datos como borrador y reutiliza las mismas fotos (no copia archivos)
+app.post("/api/propiedades/:id/duplicar", verificarToken, permitirRoles("admin", "editor"), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Identificador no válido" });
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const nueva = await client.query(
+      `INSERT INTO propiedades (
+         propiedad, nivel_piso, tipo_operacion, tipo_inmueble, precio, recamaras, banos, amueblado,
+         direccion, zona, estacionamiento, condominio, edificio, estado_conservacion, orientacion_inmueble,
+         superficie_construccion_m2, superficie_terreno_m2, acabados, descripcion, amenidades, coordenadas,
+         estado_publicacion
+       )
+       SELECT
+         propiedad || ' (copia)', nivel_piso, tipo_operacion, tipo_inmueble, precio, recamaras, banos, amueblado,
+         direccion, zona, estacionamiento, condominio, edificio, estado_conservacion, orientacion_inmueble,
+         superficie_construccion_m2, superficie_terreno_m2, acabados, descripcion, amenidades, coordenadas,
+         'borrador'
+       FROM propiedades WHERE id = $1
+       RETURNING id, propiedad, estado_publicacion`,
+      [id]
+    );
+    if (nueva.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Propiedad no encontrada" });
+    }
+    await client.query(
+      `INSERT INTO propiedad_multimedia (propiedad_id, url_archivo, tipo_archivo, principal, orden)
+       SELECT $1, url_archivo, tipo_archivo, principal, orden FROM propiedad_multimedia WHERE propiedad_id = $2`,
+      [nueva.rows[0].id, id]
+    );
+    await client.query("COMMIT");
+    registrarBitacora({
+      usuario_id: req.usuario.id,
+      usuario_nombre: req.usuario.usuario,
+      accion: "CREAR",
+      modulo: "PROPIEDADES",
+      descripcion: `${nueva.rows[0].propiedad} (duplicada de #${id})`,
+      ip: req.ip
+    });
+    res.status(201).json(nueva.rows[0]);
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    console.error(error);
+    res.status(500).json({ error: "Error al duplicar la propiedad" });
+  } finally {
+    client.release();
+  }
+});
+
 app.get("/api/public/propiedades", async (req, res) => {
   try {
     const resultado = await pool.query(`SELECT p.*, (SELECT pm.url_archivo FROM propiedad_multimedia pm WHERE pm.propiedad_id = p.id ORDER BY pm.principal DESC LIMIT 1) AS imagen_principal FROM propiedades p WHERE p.estado_publicacion = 'publicada' ORDER BY p.creado_en DESC`);

@@ -104,6 +104,62 @@
         html.dark #barraFiltros {
             background: #1e293b;
         }
+
+        /* Selector de estado dentro de la tarjeta */
+        .estado-select {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 28px 6px 12px;
+            border: none;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23374151' stroke-width='1.6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 11px center;
+        }
+        .estado-select:disabled { opacity: .6; cursor: wait; }
+        .estado-borrador  { background-color: #e5e7eb; color: #374151; }
+        .estado-publicada { background-color: #d1fae5; color: #065f46; }
+        .estado-pausada   { background-color: #fef3c7; color: #92400e; }
+        .estado-vendida   { background-color: #dbeafe; color: #1e40af; }
+        .estado-rentada   { background-color: #ede9fe; color: #5b21b6; }
+
+        /* Cuatro botones por tarjeta: dos filas de dos */
+        .tarjeta-info .acciones { grid-template-columns: repeat(2, 1fr); }
+        .btn-duplicar { background: #6b7280; color: white; }
+        .btn-duplicar:hover { background: #4b5563; }
+
+        .barra-resultados { margin: 0 clamp(12px,3vw,20px) 12px; color: #6b7280; font-size: 14px; }
+
+        .paginacion {
+            display: flex; justify-content: center; align-items: center;
+            gap: 6px; flex-wrap: wrap;
+            padding: 20px clamp(12px,3vw,20px) 30px;
+        }
+        .paginacion button {
+            min-width: 38px; height: 38px; padding: 0 12px;
+            border: none; border-radius: 10px;
+            background: #e5e7eb; color: #111827; font-weight: 700; cursor: pointer;
+        }
+        .paginacion button:hover:not(:disabled):not(.activa) { background: #d1d5db; }
+        .paginacion button.activa { background: #0d6efd; color: #fff; }
+        .paginacion button:disabled { opacity: .45; cursor: default; }
+        .paginacion .puntos { color: #6b7280; padding: 0 4px; }
+        html.dark .paginacion button { background: #334155; color: #e2e8f0; }
+        html.dark .paginacion button.activa { background: #2563eb; color: #fff; }
+
+        .toast {
+            position: fixed; right: 20px; bottom: 20px; z-index: 9999;
+            background: #111827; color: #fff; padding: 12px 18px; border-radius: 12px;
+            font-size: 14px; box-shadow: 0 8px 22px rgba(0,0,0,.25);
+            opacity: 0; transform: translateY(10px); transition: .25s;
+        }
+        .toast.visible { opacity: 1; transform: none; }
+        .toast.error { background: #b91c1c; }
     </style>
 </head>
 <body>
@@ -178,6 +234,13 @@
                 </select>
                 <input type="number" id="filtroMin" class="form-input" placeholder="Precio mínimo" data-i18n-placeholder="precio-min" style="flex:1; min-width:130px;">
                 <input type="number" id="filtroMax" class="form-input" placeholder="Precio máximo" data-i18n-placeholder="precio-max" style="flex:1; min-width:130px;">
+                <select id="ordenSelect" class="form-input" style="flex:1; min-width:160px;" aria-label="Ordenar por" data-i18n-aria="ordenar-por">
+                    <option value="recientes" data-i18n="orden-recientes">Más recientes</option>
+                    <option value="antiguos" data-i18n="orden-antiguos">Más antiguos</option>
+                    <option value="precio-asc" data-i18n="orden-precio-asc">Precio: menor a mayor</option>
+                    <option value="precio-desc" data-i18n="orden-precio-desc">Precio: mayor a menor</option>
+                    <option value="nombre" data-i18n="orden-nombre">Nombre (A-Z)</option>
+                </select>
                 <button id="btnLimpiarFiltros" class="btn-secondary" style="white-space:nowrap;">
                     <i class="fas fa-times"></i> <span data-i18n="limpiar-filtros">Limpiar filtros</span>
                 </button>
@@ -200,7 +263,9 @@
                 </div>
             </div>
 
+            <div class="barra-resultados" id="barraResultados" aria-live="polite"></div>
             <section class="grid-propiedades" id="contenedorPropiedades"></section>
+            <nav class="paginacion" id="paginacion" aria-label="Paginación"></nav>
         </main>
     </div>
 
@@ -209,6 +274,10 @@
         const token = localStorage.getItem("token");
         const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
         let propiedades = [];
+        let filtradasActuales = [];
+        let paginaActual = 1;
+        const POR_PAGINA = 12;
+        const ESTADOS = ["borrador", "publicada", "pausada", "vendida", "rentada"];
 
         if (!token || !usuarioGuardado) {
             window.location.href = "/admin-login.html";
@@ -254,6 +323,7 @@
         document.getElementById("filtroEstado").addEventListener("change", filtrarPropiedades);
         document.getElementById("filtroMin").addEventListener("input", filtrarPropiedades);
         document.getElementById("filtroMax").addEventListener("input", filtrarPropiedades);
+        document.getElementById("ordenSelect").addEventListener("change", filtrarPropiedades);
 
         document.getElementById("btnLimpiarFiltros").addEventListener("click", () => {
             document.getElementById("buscarInput").value = "";
@@ -262,6 +332,7 @@
             document.getElementById("filtroEstado").value = "";
             document.getElementById("filtroMin").value = "";
             document.getElementById("filtroMax").value = "";
+            document.getElementById("ordenSelect").value = "recientes";
             filtrarPropiedades();
         });
 
@@ -295,8 +366,7 @@
                 }
 
                 propiedades = Array.isArray(data) ? data : [];
-                actualizarResumen(propiedades);
-                renderPropiedades(propiedades);
+                filtrarPropiedades(true);
             } catch (error) {
                 console.error(error);
                 alert("Error al conectar con el servidor");
@@ -311,7 +381,95 @@
                 lista.filter(p => p.estado_publicacion === "borrador").length;
         }
 
-        function filtrarPropiedades() {
+        // Aviso breve en una esquina (reemplaza los alert() para acciones que salen bien)
+        function avisar(texto, esError = false) {
+            const toast = document.createElement("div");
+            toast.className = "toast" + (esError ? " error" : "");
+            toast.setAttribute("role", "status");
+            toast.textContent = texto;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add("visible"));
+            setTimeout(() => {
+                toast.classList.remove("visible");
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        function ordenar(lista) {
+            const modo = document.getElementById("ordenSelect").value;
+            const copia = [...lista];
+            const precio = p => Number(p.precio || 0);
+            const fecha = p => new Date(p.creado_en).getTime() || 0;
+            switch (modo) {
+                case "antiguos":    copia.sort((a, b) => fecha(a) - fecha(b)); break;
+                case "precio-asc":  copia.sort((a, b) => precio(a) - precio(b)); break;
+                case "precio-desc": copia.sort((a, b) => precio(b) - precio(a)); break;
+                case "nombre":      copia.sort((a, b) => (a.propiedad || "").localeCompare(b.propiedad || "", "es", { sensitivity: "base" })); break;
+                default:            copia.sort((a, b) => fecha(b) - fecha(a));
+            }
+            return copia;
+        }
+
+        // Números de página con puntos suspensivos: 1 … 4 5 6 … 12
+        function numerosDePagina(actual, total) {
+            if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+            const set = new Set([1, total, actual - 1, actual, actual + 1]);
+            const orden = [...set].filter(n => n >= 1 && n <= total).sort((a, b) => a - b);
+            const res = [];
+            orden.forEach((n, i) => {
+                if (i > 0 && n - orden[i - 1] > 1) res.push("...");
+                res.push(n);
+            });
+            return res;
+        }
+
+        function mostrarPagina() {
+            const total = filtradasActuales.length;
+            const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
+            if (paginaActual > paginas) paginaActual = paginas;
+            const inicio = (paginaActual - 1) * POR_PAGINA;
+            const visibles = filtradasActuales.slice(inicio, inicio + POR_PAGINA);
+
+            renderPropiedades(visibles);
+
+            document.getElementById("barraResultados").textContent = total
+                ? `${t("mostrando")} ${inicio + 1}-${inicio + visibles.length} ${t("de")} ${total}`
+                : "";
+
+            const nav = document.getElementById("paginacion");
+            nav.innerHTML = "";
+            if (paginas <= 1) return;
+
+            const boton = (texto, pagina, opciones = {}) => {
+                const b = document.createElement("button");
+                b.type = "button";
+                b.textContent = texto;
+                if (opciones.activa) { b.classList.add("activa"); b.setAttribute("aria-current", "page"); }
+                if (opciones.deshabilitado) b.disabled = true;
+                else b.addEventListener("click", () => {
+                    paginaActual = pagina;
+                    mostrarPagina();
+                    document.getElementById("barraResultados").scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+                return b;
+            };
+
+            nav.appendChild(boton("‹ " + t("pagina-anterior"), paginaActual - 1, { deshabilitado: paginaActual === 1 }));
+            numerosDePagina(paginaActual, paginas).forEach(n => {
+                if (n === "...") {
+                    const s = document.createElement("span");
+                    s.className = "puntos";
+                    s.textContent = "…";
+                    nav.appendChild(s);
+                } else {
+                    nav.appendChild(boton(String(n), n, { activa: n === paginaActual }));
+                }
+            });
+            nav.appendChild(boton(t("pagina-siguiente") + " ›", paginaActual + 1, { deshabilitado: paginaActual === paginas }));
+        }
+
+        // conservarPagina: true cuando se recarga o se cambia un estado; los filtros reinician a la página 1
+        function filtrarPropiedades(conservarPagina) {
             const texto = (document.getElementById("buscarInput").value || "").trim().toLowerCase();
             const tipo = document.getElementById("filtroTipo").value;
             const operacion = document.getElementById("filtroOperacion").value;
@@ -338,8 +496,18 @@
                 return true;
             });
 
-            actualizarResumen(filtradas);
-            renderPropiedades(filtradas);
+            filtradasActuales = ordenar(filtradas);
+            if (conservarPagina !== true) paginaActual = 1;
+            actualizarResumen(filtradasActuales);
+            mostrarPagina();
+        }
+
+        function selectorEstado(prop) {
+            const actual = ESTADOS.includes(prop.estado_publicacion) ? prop.estado_publicacion : "borrador";
+            const opciones = ESTADOS.map(e =>
+                `<option value="${e}"${e === actual ? " selected" : ""}>${t("estado." + e)}</option>`
+            ).join("");
+            return `<select class="estado-select estado-${actual}" data-id="${prop.id}" data-actual="${actual}" aria-label="${esc(t("filtrar-estado"))}">${opciones}</select>`;
         }
 
         function renderPropiedades(lista) {
@@ -388,7 +556,7 @@
                             <span style="font-weight:bold;">$${Number(prop.precio || 0).toLocaleString("es-MX")}</span>
                         </div>
 
-                        <span class="estado-pill">${esc(prop.estado_publicacion || "borrador")}</span>
+                        ${selectorEstado(prop)}
 
                         <div style="margin-top:10px; font-size:12px; color:#6b7280;">
                             Alta: ${fecha}
@@ -401,7 +569,10 @@
                             <button class="btn-card btn-editar" data-id="${prop.id}">
                                 <i class="fas fa-pen"></i> ${t("editar")}
                             </button>
-                            <button class="btn-danger btn-eliminar" data-id="${prop.id}" data-nombre="${prop.propiedad || ''}">
+                            <button class="btn-card btn-duplicar" data-id="${prop.id}">
+                                <i class="fas fa-copy"></i> ${t("duplicar")}
+                            </button>
+                            <button class="btn-danger btn-eliminar" data-id="${prop.id}" data-nombre="${esc(prop.propiedad || '')}">
                                 <i class="fas fa-trash"></i> ${t("eliminar")}
                             </button>
                         </div>
@@ -423,6 +594,57 @@
                     e.stopPropagation();
                     const id = btn.dataset.id;
                     window.location.href = `/admin-formulario.html?id=${id}`;
+                });
+            });
+
+            document.querySelectorAll(".estado-select").forEach(sel => {
+                sel.addEventListener("click", e => e.stopPropagation());
+                sel.addEventListener("change", async e => {
+                    e.stopPropagation();
+                    const nuevo = sel.value;
+                    const anterior = sel.dataset.actual;
+                    const id = sel.dataset.id;
+                    sel.disabled = true;
+                    try {
+                        const res = await fetch(`/api/propiedades/${id}/estado`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                            body: JSON.stringify({ estado_publicacion: nuevo })
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || "No se pudo cambiar el estado");
+                        const p = propiedades.find(x => String(x.id) === String(id));
+                        if (p) p.estado_publicacion = nuevo;
+                        avisar(t("estado-actualizado"));
+                        filtrarPropiedades(true);
+                    } catch (error) {
+                        console.error(error);
+                        sel.value = anterior;
+                        avisar(error.message, true);
+                        sel.disabled = false;
+                    }
+                });
+            });
+
+            document.querySelectorAll(".btn-duplicar").forEach(btn => {
+                btn.addEventListener("click", async e => {
+                    e.stopPropagation();
+                    if (!confirm(t("confirmar-duplicar"))) return;
+                    btn.disabled = true;
+                    try {
+                        const res = await fetch(`/api/propiedades/${btn.dataset.id}/duplicar`, {
+                            method: "POST",
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || "No se pudo duplicar la propiedad");
+                        avisar(t("propiedad-duplicada"));
+                        await cargarPropiedades();
+                    } catch (error) {
+                        console.error(error);
+                        avisar(error.message, true);
+                        btn.disabled = false;
+                    }
                 });
             });
 

@@ -125,6 +125,27 @@ const TRADUCCIONES = {
     "terreno":         "Terreno",
     "amueblado":       "Amueblado",
     "descripcion":     "Descripción",
+
+    // --- Lista de propiedades ---
+    "ordenar-por": "Ordenar por",
+    "orden-recientes": "Más recientes",
+    "orden-antiguos": "Más antiguos",
+    "orden-precio-asc": "Precio: menor a mayor",
+    "orden-precio-desc": "Precio: mayor a menor",
+    "orden-nombre": "Nombre (A-Z)",
+    "duplicar": "Duplicar",
+    "mostrando": "Mostrando",
+    "de": "de",
+    "pagina-anterior": "Anterior",
+    "pagina-siguiente": "Siguiente",
+    "estado-actualizado": "Estado actualizado",
+    "propiedad-duplicada": "Propiedad duplicada como borrador",
+    "confirmar-duplicar": "¿Duplicar esta propiedad? Se creará una copia en borrador con las mismas fotos.",
+    "estado.borrador": "Borrador",
+    "estado.publicada": "Publicada",
+    "estado.pausada": "Pausada",
+    "estado.vendida": "Vendida",
+    "estado.rentada": "Rentada",
   },
 
   en: {
@@ -239,6 +260,27 @@ const TRADUCCIONES = {
     "terreno":         "Land",
     "amueblado":       "Furnished",
     "descripcion":     "Description",
+
+    // --- Property list ---
+    "ordenar-por": "Sort by",
+    "orden-recientes": "Newest",
+    "orden-antiguos": "Oldest",
+    "orden-precio-asc": "Price: low to high",
+    "orden-precio-desc": "Price: high to low",
+    "orden-nombre": "Name (A-Z)",
+    "duplicar": "Duplicate",
+    "mostrando": "Showing",
+    "de": "of",
+    "pagina-anterior": "Previous",
+    "pagina-siguiente": "Next",
+    "estado-actualizado": "Status updated",
+    "propiedad-duplicada": "Property duplicated as draft",
+    "confirmar-duplicar": "Duplicate this property? A draft copy with the same photos will be created.",
+    "estado.borrador": "Draft",
+    "estado.publicada": "Published",
+    "estado.pausada": "Paused",
+    "estado.vendida": "Sold",
+    "estado.rentada": "Rented",
   }
 };
 
