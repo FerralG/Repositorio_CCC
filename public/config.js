@@ -18,6 +18,7 @@ const TRADUCCIONES = {
     "nav.propiedades":   "Propiedades",
     "nav.usuarios":      "Usuarios",
     "nav.bitacora":      "Bitácora",
+    "nav.mapa":          "Mapa",
     "nav.configuracion": "Configuración",
     "nav.cerrarSesion":  "Cerrar sesión",
 
@@ -153,6 +154,7 @@ const TRADUCCIONES = {
     "nav.propiedades":   "Properties",
     "nav.usuarios":      "Users",
     "nav.bitacora":      "Activity Log",
+    "nav.mapa":          "Map",
     "nav.configuracion": "Settings",
     "nav.cerrarSesion":  "Log out",
 

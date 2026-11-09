@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa - Vives Lara</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
+  <link rel="stylesheet" href="/public/main.css?v=3">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .main-content.pagina-mapa { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    .mapa-filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px clamp(12px,2vw,20px); background: #fff; border-bottom: 1px solid #e8e2d6; }
+    .chip-op { border: 1px solid #d1d5db; background: #fff; color: #374151; padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+    .chip-op.activo { background: #0b2545; border-color: #0b2545; color: #fff; }
+    .mapa-filtros select { width: auto; min-width: 140px; padding: 8px 12px; border-radius: 999px; font-size: 0.85rem; }
+    .mapa-filtros .conteo { margin-left: auto; font-size: 0.85rem; color: #6b7280; font-weight: 600; }
+    .interruptor { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; user-select: none; }
+    .vista-toggle { display: none; }
+
+    .mapa-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 390px minmax(0, 1fr); }
+    .mapa-lista { overflow-y: auto; padding: 12px; background: #f7f4ee; border-right: 1px solid #e8e2d6; }
+    #mapaGeneral { height: 100%; width: 100%; z-index: 0; }
+
+    .mp-card { display: flex; gap: 12px; background: #fff; border: 1px solid #e8e2d6; border-radius: 10px; padding: 8px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+    .mp-card:hover, .mp-card.resaltada { border-color: #0b2545; box-shadow: 0 6px 18px rgba(11,37,69,.15); }
+    .mp-card img { width: 112px; height: 88px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #d1d5db; }
+    .mp-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .mp-precio { font-weight: 700; color: #0b2545; font-size: 1.02rem; }
+    .mp-nombre { font-size: 0.88rem; font-weight: 600; color: #1c2433; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mp-dir { font-size: 0.78rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mp-datos { font-size: 0.78rem; color: #4b5563; margin-top: 2px; }
+    .mp-etiqueta { display: inline-block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; padding: 2px 8px; border-radius: 999px; background: #e9edf2; color: #0b2545; align-self: flex-start; margin-top: 3px; }
+    .mp-vacio { text-align: center; color: #6b7280; padding: 30px 10px; }
+
+    details.sin-ubicacion { margin-top: 10px; background: #fff; border: 1px dashed #9aa4b2; border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; }
+    details.sin-ubicacion summary { cursor: pointer; font-weight: 600; color: #0b2545; }
+    details.sin-ubicacion a { display: block; padding: 6px 0; color: #1c2433; text-decoration: none; border-bottom: 1px solid #eee; }
+    details.sin-ubicacion a:hover { color: #0b2545; text-decoration: underline; }
+
+    /* Pines con el precio */
+    .pin-precio { background: none; border: none; }
+    .pin-precio .pin { position: absolute; transform: translate(-50%, -100%); background: #0b2545; color: #fff; font: 700 12px 'Montserrat', sans-serif; padding: 5px 10px; border-radius: 999px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.35); border: 2px solid #fff; transition: transform .12s; }
+    .pin-precio .pin::after { content: ''; position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #0b2545; border-bottom: 0; }
+    .pin-precio .pin.borrador { background: #6b7280; } .pin-precio .pin.borrador::after { border-top-color: #6b7280; }
+    .pin-precio .pin.pausada { background: #b7791f; } .pin-precio .pin.pausada::after { border-top-color: #b7791f; }
+    .pin-precio .pin.vendida, .pin-precio .pin.rentada { background: #9aa4b2; } .pin-precio .pin.vendida::after, .pin-precio .pin.rentada::after { border-top-color: #9aa4b2; }
+    .pin-precio .pin.resaltado { transform: translate(-50%, -100%) scale(1.25); background: #c2410c; z-index: 9999; }
+    .pin-precio .pin.resaltado::after { border-top-color: #c2410c; }
+
+    .marker-cluster-grupo div { background: #0b2545; color: #fff; font-weight: 700; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+    .marker-cluster-grupo { background: rgba(11,37,69,.25); border-radius: 50%; }
+    .marker-cluster-grupo div { width: 34px; height: 34px; margin-left: 3px; margin-top: 3px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+
+    .popup-prop { width: 220px; }
+    .popup-prop img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; background: #d1d5db; }
+    .popup-prop strong { display: block; color: #0b2545; font-size: 1rem; }
+    .popup-prop span { display: block; font-size: .82rem; color: #374151; margin: 2px 0; }
+    .popup-prop .acc { display: flex; gap: 6px; margin-top: 8px; }
+    .popup-prop .acc a { flex: 1; text-align: center; padding: 7px 0; border-radius: 8px; font-size: .8rem; font-weight: 600; text-decoration: none; background: #0b2545; color: #fff !important; }
+    .popup-prop .acc a.sec { background: #e9edf2; color: #0b2545 !important; }
+
+    @media (max-width: 900px) {
+      .mapa-layout { grid-template-columns: minmax(0, 1fr); }
+      .vista-toggle { display: inline-flex; gap: 6px; }
+      .mapa-layout.ver-mapa .mapa-lista { display: none; }
+      .mapa-layout.ver-lista #mapaGeneral { display: none; }
+      .mapa-filtros .conteo { margin-left: 0; width: 100%; }
+    }
+
+    html.dark .mapa-filtros { background: #1e293b; border-color: #334155; }
+    html.dark .chip-op { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+    html.dark .chip-op.activo { background: #e9edf2; border-color: #e9edf2; color: #0b2545; }
+    html.dark .interruptor, html.dark .mapa-filtros .conteo { color: #cbd5e1; }
+    html.dark .mapa-lista { background: #0f172a; border-color: #334155; }
+    html.dark .mp-card, html.dark details.sin-ubicacion { background: #1e293b; border-color: #334155; }
+    html.dark .mp-precio, html.dark details.sin-ubicacion summary { color: #e9edf2; }
+    html.dark .mp-nombre, html.dark details.sin-ubicacion a { color: #e2e8f0; }
+    html.dark .mp-dir, html.dark .mp-datos { color: #94a3b8; }
+    html.dark .mp-etiqueta { background: #0f172a; color: #e2e8f0; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/tema-panel.css?v=7">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="logo"><img src="/imagenes/LOGO-nofondo-nombre.png" alt="Vives Lara"></div>
+      <ul>
+        <li onclick="window.location.href='/admin-propiedades.html'"><i class="fas fa-building"></i> <span data-i18n="nav.propiedades">Propiedades</span></li>
+        <li class="active"><i class="fas fa-map-location-dot"></i> <span data-i18n="nav.mapa">Mapa</span></li>
+        <li id="btnUsuariosMenu" style="display:none;" onclick="window.location.href='/admin-usuarios.html'"><i class="fas fa-users"></i> <span data-i18n="nav.usuarios">Usuarios</span></li>
+        <li id="btnBitacoraMenu" style="display:none;" onclick="window.location.href='/admin-bitacora.html'"><i class="fas fa-clipboard-list"></i> <span data-i18n="nav.bitacora">Bitácora</span></li>
+        <li onclick="window.location.href='/admin-configuracion.html'"><i class="fas fa-cog"></i> <span data-i18n="nav.configuracion">Configuración</span></li>
+        <li onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> <span data-i18n="nav.cerrarSesion">Cerrar sesión</span></li>
+      </ul>
+    </aside>
+
+    <main class="main-content pagina-mapa">
+      <header class="topbar">
+        <button id="btnHamburguesa" class="btn-hamburguesa" aria-label="Menú"><i class="fas fa-bars"></i></button>
+        <div class="topbar-nav">
+          <span data-i18n="topbar.inventario">INVENTARIO</span>
+          <span data-i18n="nav.mapa">MAPA</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-user-circle fa-2x"></i>
+          <span id="infoUsuario"></span>
+          <i class="fas fa-cog" title="Configuración" onclick="window.location.href='/admin-configuracion.html'" style="cursor:pointer; font-size:1.2rem;"></i>
+        </div>
+      </header>
+
+      <div class="mapa-filtros">
+        <button class="chip-op activo" data-op="">Todas</button>
+        <button class="chip-op" data-op="venta">Venta</button>
+        <button class="chip-op" data-op="renta">Renta</button>
+        <select id="fTipo" class="form-input" aria-label="Tipo de inmueble">
+          <option value="">Tipo</option>
+          <option value="casa">Casa</option>
+          <option value="departamento">Departamento</option>
+          <option value="terreno">Terreno</option>
+          <option value="local">Local</option>
+          <option value="oficina">Oficina</option>
+          <option value="otro">Otro</option>
+        </select>
+        <select id="fEstado" class="form-input" aria-label="Estado">
+          <option value="">Estado</option>
+          <option value="publicada">Publicada</option>
+          <option value="borrador">Borrador</option>
+          <option value="pausada">Pausada</option>
+          <option value="vendida">Vendida</option>
+          <option value="rentada">Rentada</option>
+        </select>
+        <label class="interruptor"><input type="checkbox" id="fMover" checked> Buscar al mover el mapa</label>
+        <span class="vista-toggle">
+          <button class="chip-op activo" data-vista="mapa">Mapa</button>
+          <button class="chip-op" data-vista="lista">Lista</button>
+        </span>
+        <span class="conteo" id="conteo"></span>
+      </div>
+
+      <div class="mapa-layout ver-mapa" id="layout">
+        <div class="mapa-lista" id="lista"></div>
+        <div id="mapaGeneral"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="sidebar-overlay"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+  <script src="config.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+    if (!token || !usuarioGuardado) window.location.href = "/admin-login.html";
+    window.iniciarVerificacionSesion();
+    if (usuarioGuardado.rol !== "admin" && usuarioGuardado.rol !== "editor") window.location.href = "/admin-login.html";
+
+    document.getElementById("infoUsuario").textContent = `${usuarioGuardado.nombre_completo} (${usuarioGuardado.rol})`;
+    if (usuarioGuardado.rol === "admin") {
+      document.getElementById("btnUsuariosMenu").style.display = "flex";
+      document.getElementById("btnBitacoraMenu").style.display = "flex";
+    }
+    function cerrarSesion() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      window.location.href = "/admin-login.html";
+    }
+
+    // ---------- Datos ----------
+    let propiedades = [];      // todas, con lat/lng cuando tienen ubicación válida
+    let visibles = [];         // las que pasan los filtros y tienen ubicación
+    const marcadores = new Map();
+    let operacion = "";
+
+    function leerCoordenadas(texto) {
+      const m = String(texto || "").match(/(-?\d{1,3}(?:\.\d+)?)\s*[, ;]\s*(-?\d{1,3}(?:\.\d+)?)/);
+      if (!m) return null;
+      const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+      if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+      return [lat, lng];
+    }
+
+    function precioCorto(n) {
+      n = Number(n || 0);
+      if (n >= 1e6) return "$" + (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace(/\.?0+$/, "") + "M";
+      if (n >= 1e3) return "$" + Math.round(n / 1e3) + "K";
+      return "$" + n;
+    }
+    const precioLargo = (n) => "$" + Number(n || 0).toLocaleString("es-MX");
+    const foto = (p) => p.imagen_principal ? esc(p.imagen_principal) : "";
+
+    // ---------- Mapa ----------
+    const mapa = L.map("mapaGeneral", { zoomControl: true }).setView([19.17, -96.13], 11);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap" }).addTo(mapa);
+
+    const grupo = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      maxClusterRadius: 55,
+      iconCreateFunction: (c) => L.divIcon({
+        html: `<div>${c.getChildCount()}</div>`,
+        className: "marker-cluster-grupo",
+        iconSize: [40, 40]
+      })
+    });
+    mapa.addLayer(grupo);
+
+    function iconoPin(p, resaltado) {
+      const estado = esc(p.estado_publicacion || "publicada");
+      return L.divIcon({
+        className: "pin-precio",
+        html: `<span class="pin ${estado}${resaltado ? " resaltado" : ""}">${precioCorto(p.precio)}</span>`,
+        iconSize: [0, 0]
+      });
+    }
+
+    function popupHtml(p) {
+      const img = foto(p) ? `<img src="${foto(p)}" alt="">` : "";
+      return `<div class="popup-prop">${img}
+        <strong>${precioLargo(p.precio)}</strong>
+        <span>${esc(p.propiedad || "Sin nombre")}</span>
+        <span>${esc(p.direccion || "")}</span>
+        <span>${p.recamaras ?? 0} rec. · ${p.banos ?? 0} baños · ${p.superficie_construccion_m2 ?? 0} m²</span>
+        <div class="acc"><a href="/admin-detalles.html?id=${p.id}">Ver</a><a class="sec" href="/admin-formulario.html?id=${p.id}">Editar</a></div>
+      </div>`;
+    }
+
+    function resaltar(id, si) {
+      const p = propiedades.find(x => x.id === id);
+      const m = marcadores.get(id);
+      if (m && p) m.setIcon(iconoPin(p, si));
+      document.querySelectorAll(`.mp-card[data-id="${id}"]`).forEach(c => c.classList.toggle("resaltada", si));
+    }
+
+    // Ajusta el mapa para que se vean todos los pines (si el mapa aún no tiene tamaño, lo hace al tenerlo)
+    let pendienteEncuadre = false;
+    let filtradasActuales = [];
+    function encuadrar() {
+      if (!visibles.length) return;
+      if (mapa.getSize().x === 0) { pendienteEncuadre = true; return; }
+      pendienteEncuadre = false;
+      mapa.fitBounds(L.latLngBounds(visibles.map(p => [p.lat, p.lng])), { padding: [50, 50], maxZoom: 15 });
+    }
+    new ResizeObserver(() => {
+      mapa.invalidateSize();
+      if (pendienteEncuadre) encuadrar();
+    }).observe(document.getElementById("mapaGeneral"));
+
+    // ---------- Filtros ----------
+    function aplicarFiltros(reencuadrar) {
+      const tipo = document.getElementById("fTipo").value;
+      const estado = document.getElementById("fEstado").value;
+      const pasa = (p) =>
+        (!operacion || (p.tipo_operacion || "").toLowerCase() === operacion || (operacion && (p.tipo_operacion || "").toLowerCase() === "ambas")) &&
+        (!tipo || (p.tipo_inmueble || "").toLowerCase() === tipo) &&
+        (!estado || p.estado_publicacion === estado);
+
+      const filtradas = propiedades.filter(pasa);
+      filtradasActuales = filtradas;
+      visibles = filtradas.filter(p => p.lat != null);
+
+      grupo.clearLayers();
+      marcadores.clear();
+      visibles.forEach(p => {
+        const m = L.marker([p.lat, p.lng], { icon: iconoPin(p, false) });
+        m.bindPopup(popupHtml(p), { minWidth: 220 });
+        m.on("mouseover", () => resaltar(p.id, true));
+        m.on("mouseout", () => resaltar(p.id, false));
+        m.on("click", () => {
+          const card = document.querySelector(`.mp-card[data-id="${p.id}"]`);
+          if (card) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        });
+        marcadores.set(p.id, m);
+        grupo.addLayer(m);
+      });
+
+      if (reencuadrar) encuadrar();
+      pintarLista(filtradas);
+    }
+
+    function pintarLista(filtradas) {
+      const buscarAlMover = document.getElementById("fMover").checked;
+      const limites = mapa.getBounds();
+      const enVista = visibles.filter(p => !buscarAlMover || limites.contains([p.lat, p.lng]));
+      const sinUbicacion = filtradas.filter(p => p.lat == null);
+
+      document.getElementById("conteo").textContent =
+        `${enVista.length} ${enVista.length === 1 ? "propiedad" : "propiedades"} ${buscarAlMover ? "en esta zona" : "en el mapa"}`;
+
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
+      if (!enVista.length) {
+        lista.innerHTML = `<div class="mp-vacio">No hay propiedades con ubicación${buscarAlMover ? " en esta zona. Mueve el mapa o aleja el zoom." : "."}</div>`;
+      }
+      enVista.forEach(p => {
+        const card = document.createElement("article");
+        card.className = "mp-card";
+        card.dataset.id = p.id;
+        const img = foto(p) ? `<img src="${foto(p)}" alt="" loading="lazy">` : `<img alt="">`;
+        card.innerHTML = `${img}
+          <div class="mp-info">
+            <span class="mp-precio">${precioLargo(p.precio)}</span>
+            <span class="mp-nombre">${esc(p.propiedad || "Sin nombre")}</span>
+            <span class="mp-dir">${esc(p.direccion || "")}</span>
+            <span class="mp-datos">${p.recamaras ?? 0} rec. · ${p.banos ?? 0} baños · ${p.superficie_construccion_m2 ?? 0} m²</span>
+            <span class="mp-etiqueta">${esc(p.tipo_operacion || "")} · ${esc(p.estado_publicacion || "")}</span>
+          </div>`;
+        card.addEventListener("mouseenter", () => resaltar(p.id, true));
+        card.addEventListener("mouseleave", () => resaltar(p.id, false));
+        card.addEventListener("click", () => {
+          const m = marcadores.get(p.id);
+          if (!m) return;
+          document.getElementById("layout").className = "mapa-layout ver-mapa";
+          mapa.invalidateSize();
+          // Se acerca al pin sin animación (así sale del grupo de inmediato) y se abre su ventana
+          mapa.setView(m.getLatLng(), Math.max(mapa.getZoom(), 17), { animate: false });
+          grupo.zoomToShowLayer(m, () => m.openPopup());
+          setTimeout(() => { if (!m.isPopupOpen()) m.openPopup(); }, 700);
+        });
+        lista.appendChild(card);
+      });
+
+      if (sinUbicacion.length) {
+        const det = document.createElement("details");
+        det.className = "sin-ubicacion";
+        det.innerHTML = `<summary>${sinUbicacion.length} sin ubicación en el mapa</summary>` +
+          sinUbicacion.map(p => `<a href="/admin-formulario.html?id=${p.id}">${esc(p.propiedad || "Sin nombre")} — agregar ubicación</a>`).join("");
+        lista.appendChild(det);
+      }
+    }
+
+    // ---------- Eventos ----------
+    document.querySelectorAll(".chip-op[data-op]").forEach(b => b.addEventListener("click", () => {
+      document.querySelectorAll(".chip-op[data-op]").forEach(x => x.classList.remove("activo"));
+      b.classList.add("activo");
+      operacion = b.dataset.op;
+      aplicarFiltros(true);
+    }));
+    document.getElementById("fTipo").addEventListener("change", () => aplicarFiltros(true));
+    document.getElementById("fEstado").addEventListener("change", () => aplicarFiltros(true));
+    document.getElementById("fMover").addEventListener("change", () => aplicarFiltros(false));
+    // Al mover el mapa solo se actualiza la lista (los pines y su ventana abierta no se tocan)
+    mapa.on("moveend", () => { if (document.getElementById("fMover").checked) pintarLista(filtradasActuales); });
+
+    document.querySelectorAll(".chip-op[data-vista]").forEach(b => b.addEventListener("click", () => {
+      document.querySelectorAll(".chip-op[data-vista]").forEach(x => x.classList.remove("activo"));
+      b.classList.add("activo");
+      document.getElementById("layout").className = "mapa-layout ver-" + b.dataset.vista;
+      mapa.invalidateSize();
+    }));
+
+    async function cargar() {
+      try {
+        const res = await fetch("/api/propiedades", { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (!res.ok) { document.getElementById("lista").innerHTML = `<div class="mp-vacio">${esc(data.error || "No se pudieron cargar las propiedades")}</div>`; return; }
+        propiedades = (Array.isArray(data) ? data : []).map(p => {
+          const c = leerCoordenadas(p.coordenadas);
+          return { ...p, lat: c ? c[0] : null, lng: c ? c[1] : null };
+        });
+        aplicarFiltros(true);
+      } catch (e) {
+        document.getElementById("lista").innerHTML = `<div class="mp-vacio">Error al conectar con el servidor</div>`;
+      }
+    }
+    cargar();
+  </script>
+  <script>
+    const btnHamburguesa = document.getElementById('btnHamburguesa');
+    const sidebarEl = document.querySelector('.sidebar');
+    const overlayEl = document.getElementById('sidebar-overlay');
+    if (btnHamburguesa) btnHamburguesa.addEventListener('click', () => { sidebarEl.classList.toggle('sidebar-open'); overlayEl.classList.toggle('active'); });
+    if (overlayEl) overlayEl.addEventListener('click', () => { sidebarEl.classList.remove('sidebar-open'); overlayEl.classList.remove('active'); });
+  </script>
+</body>
+</html>
