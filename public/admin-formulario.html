@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Propiedad - Vives Lara</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <link rel="stylesheet" href="/public/main.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -127,6 +128,12 @@
         html.dark .amen-item[aria-pressed="true"] .ico { background:#e9edf2; color:#0b2545; }
         html.dark .amen-titulo span { background:#e9edf2; color:#0b2545; }
         html.dark .amen-titulo { border-color:#e9edf2; }
+
+        /* Mapa de ubicación */
+        .mapa-acciones { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+        .mapa-acciones button { padding:9px 14px; border:none; border-radius:10px; cursor:pointer; font-size:0.85rem; }
+        .mapa-caja { height:340px; border-radius:12px; border:1px solid #d1d5db; z-index:0; }
+        html.dark .mapa-caja { border-color:#334155; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/tema-panel.css?v=7">
@@ -289,6 +296,16 @@
                 </div>
 
                 <div class="campo-grupo" style="grid-column:1 / -1;">
+                    <div class="amen-titulo"><span>Ubicación en el mapa</span><small id="estadoMapa">Sin ubicación</small></div>
+                    <p class="amen-ayuda">Toca el mapa para marcar dónde está la propiedad, o arrastra el pin. Las coordenadas se llenan solas.</p>
+                    <div class="mapa-acciones">
+                        <button type="button" class="btn-secondary" id="btnBuscarDireccion"><i class="fas fa-search-location"></i> Buscar la dirección en el mapa</button>
+                        <button type="button" class="btn-secondary" id="btnQuitarPin"><i class="fas fa-times"></i> Quitar ubicación</button>
+                    </div>
+                    <div id="mapaPropiedad" class="mapa-caja"></div>
+                </div>
+
+                <div class="campo-grupo" style="grid-column:1 / -1;">
                     <div class="amen-titulo"><span>Amenidades</span><small id="contadorAmen">0 con</small></div>
                     <p class="amen-ayuda">Toca cada amenidad para marcar si la propiedad la tiene (palomita) o no (tache).</p>
                     <div id="gridAmenidades" class="amen-grid"></div>
@@ -304,6 +321,7 @@
         </main>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="config.js"></script>
     <script>
         const token = localStorage.getItem("token");
@@ -596,6 +614,81 @@
             actualizarContadorAmen();
         }
 
+
+        // ===== Mapa para marcar la ubicación =====
+        let mapa = null, pin = null;
+        const inputCoord = document.getElementById('coordenadas');
+
+        function leerCoordenadas(texto) {
+            const m = String(texto || '').match(/(-?\d{1,3}(?:\.\d+)?)\s*[, ;]\s*(-?\d{1,3}(?:\.\d+)?)/);
+            if (!m) return null;
+            const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+            if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+            return [lat, lng];
+        }
+
+        function ponerPin(lat, lng, centrar) {
+            if (!mapa) return;
+            if (!pin) {
+                pin = L.marker([lat, lng], { draggable: true }).addTo(mapa);
+                pin.on('dragend', () => { const p = pin.getLatLng(); guardarPunto(p.lat, p.lng, false); });
+            } else {
+                pin.setLatLng([lat, lng]);
+            }
+            if (centrar) mapa.setView([lat, lng], Math.max(mapa.getZoom(), 16));
+        }
+
+        function guardarPunto(lat, lng, centrar) {
+            const la = lat.toFixed(6), ln = lng.toFixed(6);
+            inputCoord.value = la + ',' + ln;
+            ponerPin(lat, lng, centrar);
+            document.getElementById('estadoMapa').textContent = 'Ubicación marcada';
+        }
+
+        function sincronizarDesdeCampo() {
+            const c = leerCoordenadas(inputCoord.value);
+            if (c) { ponerPin(c[0], c[1], true); document.getElementById('estadoMapa').textContent = 'Ubicación marcada'; }
+        }
+
+        (function iniciarMapa() {
+            if (typeof L === 'undefined') {
+                document.getElementById('mapaPropiedad').innerHTML = '<p style="padding:20px;color:#6b7280;">No se pudo cargar el mapa. Puedes escribir las coordenadas a mano en el campo de arriba.</p>';
+                return;
+            }
+            mapa = L.map('mapaPropiedad').setView([19.1738, -96.1342], 12);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(mapa);
+            mapa.on('click', (e) => guardarPunto(e.latlng.lat, e.latlng.lng, false));
+            inputCoord.addEventListener('change', sincronizarDesdeCampo);
+
+            document.getElementById('btnQuitarPin').addEventListener('click', () => {
+                if (pin) { mapa.removeLayer(pin); pin = null; }
+                inputCoord.value = '';
+                document.getElementById('estadoMapa').textContent = 'Sin ubicación';
+            });
+
+            document.getElementById('btnBuscarDireccion').addEventListener('click', async () => {
+                const dir = [document.getElementById('direccion').value, document.getElementById('zona').value].filter(s => s.trim()).join(', ');
+                const est = document.getElementById('estadoMapa');
+                if (!dir.trim()) { est.textContent = 'Escribe primero la dirección'; return; }
+                est.textContent = 'Buscando…';
+                try {
+                    const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=mx&q=' + encodeURIComponent(dir));
+                    const datos = await r.json();
+                    if (datos && datos[0]) {
+                        guardarPunto(parseFloat(datos[0].lat), parseFloat(datos[0].lon), true);
+                        est.textContent = 'Encontrada: revisa que el pin esté bien';
+                    } else {
+                        est.textContent = 'No se encontró: marca el punto en el mapa';
+                    }
+                } catch (_) {
+                    est.textContent = 'No se pudo buscar: marca el punto en el mapa';
+                }
+            });
+        })();
+
         function setVal(id, val) {
             const el = document.getElementById(id);
             if (!el || val === null || val === undefined) return;
@@ -633,6 +726,7 @@
                 setVal("acabados", d.acabados);
                 cargarAmenidades(d.amenidades);
                 setVal("coordenadas", d.coordenadas);
+                sincronizarDesdeCampo();
                 setVal("descripcion", d.descripcion);
                 setVal("estado_publicacion", d.estado_publicacion);
 
