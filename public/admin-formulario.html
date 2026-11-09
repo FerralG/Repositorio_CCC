@@ -110,6 +110,23 @@
         }
         .badge-num.principal { background: #2563eb; }
         .badge-num.secundario { background: rgba(55,65,81,0.75); }
+
+        /* Amenidades: palomita = la tiene, tache = no la tiene */
+        .amen-titulo { display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #0b2545; }
+        .amen-titulo span { background:#0b2545; color:#fff; padding:8px 20px; border-radius:12px 12px 0 0; font-weight:600; font-size:0.95rem; }
+        .amen-titulo small { color:#6b7280; font-size:0.8rem; }
+        .amen-ayuda { color:#6b7280; font-size:0.82rem; margin:10px 0 4px; }
+        .amen-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:6px 14px; margin-top:8px; }
+        .amen-item { display:flex; align-items:center; gap:10px; padding:9px 8px; border:none; background:none; cursor:pointer; text-align:left; font-weight:600; font-size:0.9rem; color:#374151; border-radius:10px; font-family:inherit; }
+        .amen-item:hover { background:#f1f3f6; }
+        .amen-item .ico { width:26px; height:26px; flex-shrink:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:#e5e7eb; color:#4b5563; font-size:0.75rem; }
+        .amen-item[aria-pressed="true"] .ico { background:#0b2545; color:#fff; }
+        html.dark .amen-item { color:#e2e8f0; }
+        html.dark .amen-item:hover { background:#1e293b; }
+        html.dark .amen-item .ico { background:#334155; color:#cbd5e1; }
+        html.dark .amen-item[aria-pressed="true"] .ico { background:#e9edf2; color:#0b2545; }
+        html.dark .amen-titulo span { background:#e9edf2; color:#0b2545; }
+        html.dark .amen-titulo { border-color:#e9edf2; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/tema-panel.css?v=7">
@@ -266,13 +283,17 @@
                         <input type="text" id="acabados" class="form-input" placeholder="Acabados">
                     </div>
                     <div class="campo-grupo">
-                        <label for="amenidades">Amenidades</label>
-                        <input type="text" id="amenidades" class="form-input" placeholder="Amenidades">
-                    </div>
-                    <div class="campo-grupo">
                         <label for="coordenadas">Coordenadas (lat, lng)</label>
                         <input type="text" id="coordenadas" class="form-input" placeholder="ej. 19.1738,-96.1342">
                     </div>
+                </div>
+
+                <div class="campo-grupo" style="grid-column:1 / -1;">
+                    <div class="amen-titulo"><span>Amenidades</span><small id="contadorAmen">0 con</small></div>
+                    <p class="amen-ayuda">Toca cada amenidad para marcar si la propiedad la tiene (palomita) o no (tache).</p>
+                    <div id="gridAmenidades" class="amen-grid"></div>
+                    <label for="amenidades_otras" style="margin-top:14px;">Otras amenidades (sepáralas con comas)</label>
+                    <input type="text" id="amenidades_otras" class="form-input" placeholder="Ej. Jardín privado, Cava de vinos">
                 </div>
 
                 <div class="campo-grupo" style="grid-column:1 / -1;">
@@ -343,7 +364,7 @@
                     direccion: document.getElementById("direccion").value,
                     zona: document.getElementById("zona").value,
                     descripcion: document.getElementById("descripcion").value,
-                    amenidades: document.getElementById("amenidades").value,
+                    amenidades: obtenerAmenidades(),
                     acabados: document.getElementById("acabados").value,
                     estado_conservacion: document.getElementById("estado_conservacion").value,
                     orientacion_inmueble: document.getElementById("orientacion_inmueble").value,
@@ -521,6 +542,60 @@
             });
         }
 
+
+        // ===== Amenidades: botones con palomita / tache =====
+        const CATALOGO_AMENIDADES = ['Alberca', 'Gimnasio', 'Salón de eventos', 'Salón de usos múltiples', 'Área de asadores', 'Ludoteca / área de juegos', 'Elevador', 'Lobby / recepción', 'Vigilancia 24/7', 'Acceso a la playa', 'Spa', 'Cancha deportiva', 'Áreas verdes', 'Palapa / snack bar', 'Aire acondicionado', 'Cocina integral', 'Closets', 'Balcón / terraza', 'Vista al mar', 'Cuarto de servicio', 'Área de lavado', 'Bodega', 'Calentador de agua', 'Jardín', 'Estacionamiento techado', 'Valet parking', 'Cámaras de seguridad', 'Portón eléctrico', 'Mascotas permitidas'];
+        const sinAcentos = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+        function pintarIcono(btn) {
+            const si = btn.getAttribute('aria-pressed') === 'true';
+            btn.querySelector('.ico').innerHTML = si ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+        }
+        (function () {
+            const grid = document.getElementById('gridAmenidades');
+            CATALOGO_AMENIDADES.forEach(nombre => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'amen-item';
+                b.dataset.nombre = nombre;
+                b.setAttribute('aria-pressed', 'false');
+                b.innerHTML = '<span class="ico"></span>';
+                b.appendChild(document.createTextNode(nombre));
+                pintarIcono(b);
+                b.addEventListener('click', () => {
+                    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+                    pintarIcono(b);
+                    actualizarContadorAmen();
+                });
+                grid.appendChild(b);
+            });
+        })();
+        function actualizarContadorAmen() {
+            const n = document.querySelectorAll('.amen-item[aria-pressed="true"]').length
+                + document.getElementById('amenidades_otras').value.split(/[,;]+/).filter(s => s.trim()).length;
+            document.getElementById('contadorAmen').textContent = n + ' con';
+        }
+        document.getElementById('amenidades_otras').addEventListener('input', actualizarContadorAmen);
+
+        // Texto que se guarda en la base de datos: "Alberca, Gimnasio, Jardín privado"
+        function obtenerAmenidades() {
+            const si = Array.from(document.querySelectorAll('.amen-item[aria-pressed="true"]')).map(b => b.dataset.nombre);
+            const otras = document.getElementById('amenidades_otras').value.split(/[,;]+/).map(s => s.trim()).filter(Boolean);
+            return si.concat(otras).join(', ');
+        }
+        // Lee el texto guardado (también el escrito a mano antes) y marca los que coincidan
+        function cargarAmenidades(texto) {
+            const piezas = String(texto || '').split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+            const botones = Array.from(document.querySelectorAll('.amen-item'));
+            const sobrantes = [];
+            piezas.forEach(p => {
+                const b = botones.find(x => sinAcentos(x.dataset.nombre) === sinAcentos(p));
+                if (b) { b.setAttribute('aria-pressed', 'true'); pintarIcono(b); } else sobrantes.push(p);
+            });
+            document.getElementById('amenidades_otras').value = sobrantes.join(', ');
+            actualizarContadorAmen();
+        }
+
         function setVal(id, val) {
             const el = document.getElementById(id);
             if (!el || val === null || val === undefined) return;
@@ -556,7 +631,7 @@
                 setVal("superficie_construccion_m2", d.superficie_construccion_m2);
                 setVal("superficie_terreno_m2", d.superficie_terreno_m2);
                 setVal("acabados", d.acabados);
-                setVal("amenidades", d.amenidades);
+                cargarAmenidades(d.amenidades);
                 setVal("coordenadas", d.coordenadas);
                 setVal("descripcion", d.descripcion);
                 setVal("estado_publicacion", d.estado_publicacion);
@@ -654,7 +729,7 @@
                 superficie_terreno_m2: document.getElementById("superficie_terreno_m2").value !== "" ? Number(document.getElementById("superficie_terreno_m2").value) : null,
                 acabados: document.getElementById("acabados").value.trim(),
                 descripcion: document.getElementById("descripcion").value.trim(),
-                amenidades: document.getElementById("amenidades").value.trim(),
+                amenidades: obtenerAmenidades(),
                 coordenadas: document.getElementById("coordenadas").value.trim() || null,
                 estado_publicacion: document.getElementById("estado_publicacion").value
             };
