@@ -270,6 +270,11 @@
       } else {
         document.documentElement.classList.remove("dark");
       }
+      // Se guarda al instante para que todas las pestañas lo mantengan
+      window.guardarPreferencias({
+        modo_oscuro: e.target.checked,
+        idioma: localStorage.getItem("idioma") || "es"
+      });
     });
 
     // Checklist contraseña

@@ -1057,7 +1057,7 @@ app.get("/api/public/propiedades/:id", async (req, res) => {
 app.get("/api/preferencias", verificarToken, async (req, res) => {
   try {
     const resultado = await pool.query("SELECT modo_oscuro, idioma FROM preferencias_usuario WHERE usuario_id = $1", [req.usuario.id]);
-    res.json(resultado.rows[0] || { modo_oscuro: false, idioma: "es" });
+    res.json(resultado.rows[0] || { modo_oscuro: false, idioma: "es", sin_guardar: true });
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }

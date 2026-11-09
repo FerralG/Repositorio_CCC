@@ -342,12 +342,33 @@ function _aplicarIdioma(idioma) {
     });
     if (res.ok) {
       const prefs = await res.json();
-      _aplicarPrefs(prefs);
+      if (prefs.sin_guardar) {
+        // Aún no hay preferencias en el servidor: se conservan las de este navegador y se suben
+        const locales = {
+          modo_oscuro: localStorage.getItem("modo_oscuro") === "true",
+          idioma: localStorage.getItem("idioma") || "es"
+        };
+        _aplicarPrefs(locales);
+        fetch("/api/preferencias", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify(locales)
+        }).catch(() => {});
+      } else {
+        _aplicarPrefs(prefs);
+      }
     }
   } catch (_) {
     // Si falla el API, mantener lo que ya se aplicó desde localStorage
   }
 })();
+
+// --- Si cambias el modo oscuro en una pestaña, las demás pestañas abiertas lo siguen
+window.addEventListener("storage", (e) => {
+  if (e.key === "modo_oscuro") {
+    document.documentElement.classList.toggle("dark", e.newValue === "true");
+  }
+});
 
 // --- Verificación periódica de sesión
 window.iniciarVerificacionSesion = function() {
