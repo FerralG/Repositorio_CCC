@@ -419,3 +419,24 @@ window.guardarPreferencias = async function({ modo_oscuro, idioma }) {
     });
   } catch (_) { /* silencioso */ }
 };
+
+// --- Ocultar / mostrar la barra lateral en pantallas grandes (se recuerda entre páginas)
+(function menuLateralPlegable() {
+  const CLAVE = "sidebar_oculta";
+  const aplicar = (oculta) => document.documentElement.classList.toggle("sidebar-oculta", oculta);
+  try { aplicar(localStorage.getItem(CLAVE) === "true"); } catch (_) {}
+
+  document.addEventListener("click", (e) => {
+    const boton = e.target.closest(".btn-hamburguesa");
+    if (!boton || window.innerWidth < 768) return; // en celular sigue el menú deslizable de siempre
+    e.stopImmediatePropagation();
+    const oculta = !document.documentElement.classList.contains("sidebar-oculta");
+    aplicar(oculta);
+    try { localStorage.setItem(CLAVE, oculta ? "true" : "false"); } catch (_) {}
+    window.dispatchEvent(new Event("resize")); // para que el mapa y otros elementos se reajusten
+  }, true);
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === CLAVE) aplicar(e.newValue === "true");
+  });
+})();

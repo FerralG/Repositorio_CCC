@@ -342,3 +342,9 @@ html.dark .btn-eliminar:hover { background: #b42318; color: #fff; }
 html.dark #barraFiltros { background: #1e293b !important; border-color: #334155; }
 html.dark .login-card { background: #111827; }
 html.dark .login-title { color: #e9edf2; }
+
+/* ---------- Barra lateral plegable (pantallas grandes) ---------- */
+@media (min-width: 768px) {
+    html .btn-hamburguesa { display: flex !important; }
+    html.sidebar-oculta .sidebar { display: none; }
+}
