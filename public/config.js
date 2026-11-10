@@ -440,3 +440,21 @@ window.guardarPreferencias = async function({ modo_oscuro, idioma }) {
     if (e.key === CLAVE) aplicar(e.newValue === "true");
   });
 })();
+
+// --- Campos de dinero: escribe 1200000 y se ve 1,200,000
+window.activarFormatoDinero = function(input) {
+  if (!input) return;
+  input.type = "text";
+  input.inputMode = "numeric";
+  input.autocomplete = "off";
+  input.addEventListener("input", () => {
+    const pos = input.selectionStart;
+    const largoAntes = input.value.length;
+    const digitos = input.value.replace(/\D/g, "");
+    input.value = digitos ? Number(digitos).toLocaleString("es-MX") : "";
+    const dif = input.value.length - largoAntes;
+    try { input.setSelectionRange(pos + dif, pos + dif); } catch (_) {}
+  });
+};
+// Devuelve solo los dígitos ("1,200,000" -> "1200000")
+window.valorDinero = (input) => (input ? input.value.replace(/\D/g, "") : "");

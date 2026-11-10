@@ -137,9 +137,9 @@
           <option value="rentada">Rentada</option>
         </select>
         <span class="rango-precio">
-          <input type="number" id="fMin" class="form-input" min="0" step="100000" placeholder="Precio mín." aria-label="Precio mínimo">
+          <input type="text" id="fMin" class="form-input" placeholder="Precio mín." aria-label="Precio mínimo">
           <span>–</span>
-          <input type="number" id="fMax" class="form-input" min="0" step="100000" placeholder="Precio máx." aria-label="Precio máximo">
+          <input type="text" id="fMax" class="form-input" placeholder="Precio máx." aria-label="Precio máximo">
         </span>
         <button class="chip-op" id="btnLimpiar" type="button" style="display:none;">Limpiar filtros</button>
         <label class="interruptor"><input type="checkbox" id="fMover" checked> Buscar al mover el mapa</label>
@@ -262,7 +262,7 @@
     function aplicarFiltros(reencuadrar) {
       const tipo = document.getElementById("fTipo").value;
       const estado = document.getElementById("fEstado").value;
-      const minV = document.getElementById("fMin").value, maxV = document.getElementById("fMax").value;
+      const minV = valorDinero(document.getElementById("fMin")), maxV = valorDinero(document.getElementById("fMax"));
       const min = minV !== "" ? Number(minV) : null, max = maxV !== "" ? Number(maxV) : null;
       const pasa = (p) =>
         (min === null || Number(p.precio || 0) >= min) &&
@@ -358,6 +358,8 @@
     document.getElementById("fMover").addEventListener("change", () => aplicarFiltros(false));
 
     // Rango de precios (se espera un instante a que termines de escribir)
+    activarFormatoDinero(document.getElementById("fMin"));
+    activarFormatoDinero(document.getElementById("fMax"));
     let esperaPrecio;
     ["fMin", "fMax"].forEach(id => document.getElementById(id).addEventListener("input", () => {
       clearTimeout(esperaPrecio);
