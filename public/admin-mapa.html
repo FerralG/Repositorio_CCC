@@ -16,6 +16,8 @@
     .chip-op.activo { background: #0b2545; border-color: #0b2545; color: #fff; }
     .mapa-filtros select { width: auto; min-width: 140px; padding: 8px 12px; border-radius: 999px; font-size: 0.85rem; }
     .mapa-filtros .conteo { margin-left: auto; font-size: 0.85rem; color: #6b7280; font-weight: 600; }
+    .rango-precio { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; }
+    .rango-precio .form-input { width: 128px; min-width: 0; padding: 8px 12px; border-radius: 999px; font-size: 0.85rem; }
     .interruptor { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; user-select: none; }
     .vista-toggle { display: none; }
 
@@ -67,11 +69,13 @@
       .mapa-layout.ver-mapa .mapa-lista { display: none; }
       .mapa-layout.ver-lista #mapaGeneral { display: none; }
       .mapa-filtros .conteo { margin-left: 0; width: 100%; }
+      .rango-precio .form-input { width: 110px; }
     }
 
     html.dark .mapa-filtros { background: #1e293b; border-color: #334155; }
     html.dark .chip-op { background: #0f172a; border-color: #334155; color: #e2e8f0; }
     html.dark .chip-op.activo { background: #e9edf2; border-color: #e9edf2; color: #0b2545; }
+    html.dark .rango-precio { color: #94a3b8; }
     html.dark .interruptor, html.dark .mapa-filtros .conteo { color: #cbd5e1; }
     html.dark .mapa-lista { background: #0f172a; border-color: #334155; }
     html.dark .mp-card, html.dark details.sin-ubicacion { background: #1e293b; border-color: #334155; }
@@ -132,6 +136,12 @@
           <option value="vendida">Vendida</option>
           <option value="rentada">Rentada</option>
         </select>
+        <span class="rango-precio">
+          <input type="number" id="fMin" class="form-input" min="0" step="100000" placeholder="Precio mín." aria-label="Precio mínimo">
+          <span>–</span>
+          <input type="number" id="fMax" class="form-input" min="0" step="100000" placeholder="Precio máx." aria-label="Precio máximo">
+        </span>
+        <button class="chip-op" id="btnLimpiar" type="button" style="display:none;">Limpiar filtros</button>
         <label class="interruptor"><input type="checkbox" id="fMover" checked> Buscar al mover el mapa</label>
         <span class="vista-toggle">
           <button class="chip-op activo" data-vista="mapa">Mapa</button>
@@ -252,12 +262,17 @@
     function aplicarFiltros(reencuadrar) {
       const tipo = document.getElementById("fTipo").value;
       const estado = document.getElementById("fEstado").value;
+      const minV = document.getElementById("fMin").value, maxV = document.getElementById("fMax").value;
+      const min = minV !== "" ? Number(minV) : null, max = maxV !== "" ? Number(maxV) : null;
       const pasa = (p) =>
+        (min === null || Number(p.precio || 0) >= min) &&
+        (max === null || Number(p.precio || 0) <= max) &&
         (!operacion || (p.tipo_operacion || "").toLowerCase() === operacion || (operacion && (p.tipo_operacion || "").toLowerCase() === "ambas")) &&
         (!tipo || (p.tipo_inmueble || "").toLowerCase() === tipo) &&
         (!estado || p.estado_publicacion === estado);
 
       const filtradas = propiedades.filter(pasa);
+      document.getElementById("btnLimpiar").style.display = (operacion || tipo || estado || min !== null || max !== null) ? "" : "none";
       filtradasActuales = filtradas;
       visibles = filtradas.filter(p => p.lat != null);
 
@@ -341,6 +356,19 @@
     document.getElementById("fTipo").addEventListener("change", () => aplicarFiltros(true));
     document.getElementById("fEstado").addEventListener("change", () => aplicarFiltros(true));
     document.getElementById("fMover").addEventListener("change", () => aplicarFiltros(false));
+
+    // Rango de precios (se espera un instante a que termines de escribir)
+    let esperaPrecio;
+    ["fMin", "fMax"].forEach(id => document.getElementById(id).addEventListener("input", () => {
+      clearTimeout(esperaPrecio);
+      esperaPrecio = setTimeout(() => aplicarFiltros(true), 450);
+    }));
+    document.getElementById("btnLimpiar").addEventListener("click", () => {
+      operacion = "";
+      document.querySelectorAll(".chip-op[data-op]").forEach(x => x.classList.toggle("activo", x.dataset.op === ""));
+      ["fTipo", "fEstado", "fMin", "fMax"].forEach(id => { document.getElementById(id).value = ""; });
+      aplicarFiltros(true);
+    });
     // Al mover el mapa solo se actualiza la lista (los pines y su ventana abierta no se tocan)
     mapa.on("moveend", () => { if (document.getElementById("fMover").checked) pintarLista(filtradasActuales); });
 
